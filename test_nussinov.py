@@ -2,6 +2,36 @@ from nussinov import *
 
 import random
 
+def test_max_distance_dp():
+    """
+    Generate rnas of different sizes,
+    and test the DP algorithm against the
+    brute force algorithm.
+        - Test the max difference (min_similarities_dp)
+        - Test the vector (min_similarities_vec)
+    """
+    test_range = range(5, 25)
+    item_per_range = 1000
+    for length in test_range:
+        print(f"Testing length = {length}...")
+        for _ in range(item_per_range):
+            rna = generate_rna(length)
+
+            _, opt_solutions = nussinov_dp(rna)
+            folding = construct_one_opt_solution(rna, opt_solutions)
+
+            maxdiff, _ = max_distance_dp(folding, opt_solutions)
+
+            optimal_folds = backtrack(rna, opt_solutions)
+            v = distancevector(folding, optimal_folds)
+            maxdiff_bf = len(v)-1
+            assert maxdiff == maxdiff_bf
+
+            # Test histogram/vector calculations
+            vdp = max_distance_vec(folding, opt_solutions).v
+            assert vdp == v
+            
+
 def test_min_similarities_dp():
     """
     Generate rnas of different sizes,
@@ -21,8 +51,7 @@ def test_min_similarities_dp():
             folding = construct_one_opt_solution(rna, opt_solutions)
 
             minsim, _ = min_similarities_dp(folding, opt_solutions)
-            maxdiff = 2*maxfold - 2*minsim
-            
+            maxdiff = 2*maxfold - 2*minsim 
 
             optimal_folds = backtrack(rna, opt_solutions)
             v = distancevector(folding, optimal_folds)
@@ -146,5 +175,6 @@ def distancevector(fold: list, allfolds: list):
     return vector
 
     
-test_min_similarities_dp()
+# test_min_similarities_dp()
+test_max_distance_dp()
 print("All tests passed!")

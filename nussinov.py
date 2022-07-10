@@ -23,7 +23,7 @@ def nussinov_dp(rna: str) -> tuple[int, list[list[int]]]:
     }
     """
     N = len(rna)
-    if len(rna) == 0: 
+    if N == 0: 
         return 0
     
     # dp[i][j] = the maximum number of paired bases (int) for rna rna[i:j+1]
@@ -126,7 +126,6 @@ def min_similarities_dp(folding, opt_solutions):
             pair_index = folding[start]
             min_similarities = N
             min_similarities_choices = []
-            # TODO: in the DP solution, we need to check that this dictionary entry is not empty
             opt_choices = opt_solutions[start][end]
 
             current_similarities = 0
@@ -262,5 +261,103 @@ def min_similarities_vec(folding, opt_solutions):
     
     return dp[0][N-1]
 
+def count_overlapping_basepairs(folding: list) -> list:
+    """
+    Given an RNA folding
+
+    Return a 3D list dp.
+    dp[i][j][k] = the number of basepairs contained in rna[i:j+1]
+                      that overlap position k.
+    For example, a basepair (2,4) overlaps position 2, 3, and 4.
+    """
+    N = len(folding)
+    dp = [[[0 for k in range(N)] for j in range(N)] for i in range(N+1)]
+    for start in reversed(range(0, N)):
+        for end in range(0, N):
+            for pos in range(start, end+1):
+                pair_index = folding[start]
+                is_start_pair_overlap = start < pair_index <= end and pair_index >= pos
+                dp[start][end][pos] = dp[start+1][end][pos] + int(is_start_pair_overlap)
+    return dp
+                
+
+def max_distance_dp(folding, opt_solutions):
+    N = len(folding)
+    overlap_counts = count_overlapping_basepairs(folding)
+    # dp[i][j] = the maximum distance that any optimal folding of rna[i:j+1] has from
+    #            the given folding if we only consider basepairs contained in rna[i:j+1].
+    #            The distance metric used here is symmetric set difference of the basepairs.
+    # Note that dp[i+1][i] denotes the empty string base case, so we have to store
+    # the cell dp[N][N-1]. This means we have to store (N+1)*N matrix to store that cell.
+    dp = [[None for j in range(N)] for i in range(N+1)]
+    breadcrumbs = [[None for j in range(N)] for i in range(N+1)]
+
+    # base cases dp[i+1][i] = 0 (size 0), dp[i][i] = 0 (size 1)
+    for i in range(0, N):
+        dp[i][i] = 0
+        breadcrumbs[i][i] = []
+        dp[i+1][i] = 0
+        breadcrumbs[i+1][i] = []
+
+    for start in reversed(range(0, N)):
+        for end in range(start+1, N):
+            pair_index = folding[start]
+            pair_in_range = int(start < pair_index <= end)
+            max_distance = 0
+            max_distance_choices = []
+            opt_choices = opt_solutions[start][end]
+
+            current_distance = 0
+            current_choice = []
+            for choice in opt_choices:
+                if choice[0] == "L":
+                    current_distance = dp[start+1][end] + (1 if pair_in_range else 0)
+                    current_choice = ("L", start)
+                elif choice[0] == "M":
+                    # get the basepair matching in the optimal choice
+                    _, opt_pair_index = choice[1]    
+                    current_distance = dp[start+1][opt_pair_index-1] \
+                                        + dp[opt_pair_index+1][end] \
+                                        + 2 * int(pair_index != opt_pair_index) \
+                                        - (1 if not pair_in_range else 0) \
+                                        + overlap_counts[start+1][end][opt_pair_index]
+                    current_choice = ("M", (start, opt_pair_index))
+                if current_distance > max_distance:
+                    max_distance = current_distance
+                    max_distance_choices = list(current_choice)
+                elif current_distance == max_distance:
+                    max_distance_choices.append(current_choice)
+
+            dp[start][end] = max_distance
+            breadcrumbs[start][end] = max_distance_choices
+    return dp[0][N-1], breadcrumbs
 
 
+def max_distance_vec(folding, opt_solutions):
+    N = len(folding)
+    overlap_counts = count_overlapping_basepairs(folding)
+    dp = [[None for j in range(N)] for i in range(N+1)]
+
+    for i in range(0, N):
+        dp[i][i] = V([1])
+        dp[i+1][i] = V([1])
+
+    for start in reversed(range(0, N)):
+        for end in range(start+1, N):
+            pair_index = folding[start]
+            pair_in_range = int(start < pair_index <= end)
+            vec = V()
+            opt_choices = opt_solutions[start][end]
+            for choice in opt_choices:
+                if choice[0] == "L":
+                    vec += dp[start+1][end] >> (1 if pair_in_range else 0)
+                elif choice[0] == "M":
+                    _, opt_pair_index = choice[1]    
+                    vec += (dp[start+1][opt_pair_index-1]
+                            ^ dp[opt_pair_index+1][end]) \
+                            >> (2 * int(pair_index != opt_pair_index)
+                                - (1 if not pair_in_range else 0)
+                                + overlap_counts[start+1][end][opt_pair_index])
+
+            dp[start][end] = vec
+    return dp[0][N-1]
