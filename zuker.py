@@ -34,10 +34,10 @@ class Solver:
             self.WM[i][i] = self.compute_WM(i, i)
             self.WM2[i][i] = self.compute_WM2(i, i)
             
-            self.W[i+1][i] = self.compute_W(i, i)
-            self.V[i+1][i] = self.compute_V(i, i)
-            self.WM[i+1][i] = self.compute_WM(i, i)
-            self.WM2[i+1][i] = self.compute_WM2(i, i)
+            self.W[i+1][i] = self.compute_W(i+1, i)
+            self.V[i+1][i] = self.compute_V(i+1, i)
+            self.WM[i+1][i] = self.compute_WM(i+1, i)
+            self.WM2[i+1][i] = self.compute_WM2(i+1, i)
 
         for i in reversed(range(0, N)):
             for j in range(i+1, N):
@@ -64,7 +64,7 @@ class Solver:
     
     def compute_V(self, i: int, j: int):
         # base
-        if (not self.match(i,j)) or j-i <= self.m:
+        if j-i <= self.m or (not self.match(i,j)):
             return float('inf')
         # Case 1: Hairpin loop
         r1 = self.eH(i, j)
