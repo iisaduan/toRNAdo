@@ -251,7 +251,8 @@ def debug(solver1: Solver, solver2: Solver2):
             print(f'{s:>8}', end="")
         print()
 
-debug(new_solver, solver2)
+if __name__ == '__main__':
+    debug(new_solver, solver2)
 
 
 
