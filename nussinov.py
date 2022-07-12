@@ -1,4 +1,4 @@
-matchings_pairs = [('A', 'T'), ('T', 'A'), ('C', 'G'), ('G', 'C')]
+matchings_pairs = [('A', 'U'), ('U', 'A'), ('C', 'G'), ('G', 'C')]
 def is_base_pair(b1, b2):
     return (b1, b2) in matchings_pairs
 

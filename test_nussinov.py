@@ -30,7 +30,6 @@ def test_max_distance_dp():
             # Test histogram/vector calculations
             vdp = max_distance_vec(folding, opt_solutions).v
             assert vdp == v
-            
 
 def test_min_similarities_dp():
     """
@@ -62,10 +61,88 @@ def test_min_similarities_dp():
             vdp = min_similarities_vec(folding, opt_solutions).to_diff_vec(maxfold)
             assert vdp == v
 
+def test_suboptimal_fold():
+    """
+    Generate rnas of different sizes,
+    and test the DP algorithm against the
+    brute force algorithm.
+        - Test the max difference (min_similarities_dp)
+        - Test the vector (min_similarities_vec)
+    """
+    test_range = range(5, 6)
+    item_per_range = 10
+    for length in test_range:
+        print(f"Testing length = {length}...")
+        for _ in range(item_per_range):
+            rna = generate_rna(length)
+
+            dist, opt_solutions = nussinov_dp(rna)
+            folding = gen_random_fold(rna)
+
+            maxdiff, _ = max_distance_dp(folding, opt_solutions)
+
+            optimal_folds = backtrack(rna, opt_solutions)
+            v = distancevector(folding, optimal_folds)
+            maxdiff_bf = len(v)-1
+            assert maxdiff == maxdiff_bf
+
+            # Test histogram/vector calculations
+            vdp = max_distance_vec(folding, opt_solutions).v
+            assert vdp == v
+
+            print(f'rna: {rna} | fold: {folding}')
+            print(f'optdist: {dist}')
+            for o in optimal_folds:
+                print('-', o)
+            print(f'vec: {vdp} ({maxdiff})')
+
+matches = {'A': 'U', 'U': 'A', 'C':'G', 'G':'C'}
+def match_of(c):
+    return matches[c]
+
+def gen_random_fold_h(rna: str, i: int, j: int, fold: list[int]):
+    if i == j: return
+
+    potential_indices = []
+    for k in range(i+1, j):
+        if match_of(rna[i]) == rna[k]:
+            potential_indices.append(k)
+    
+    potential_indices.append(None)
+    match_result = random.choice(potential_indices)
+
+    if match_result is None:
+        return
+
+    k = match_result
+    
+    fold[i] = k
+    fold[k] = i
+
+    gen_random_fold_h(rna, i+1, k, fold)
+    gen_random_fold_h(rna, k+1, j, fold)
+
+def gen_random_fold(rna: str):
+    """
+    Given an rna, generate a random fold.
+    """
+    fold = [i for i in range(len(rna))]
+    gen_random_fold_h(rna, 0, len(rna), fold)  
+    return fold
+
+def test_nussinov():
+    for _ in range(10):
+        rna = generate_rna(6)
+        opt, solgraph = nussinov_dp(rna)
+        allopts = backtrack(rna, solgraph)
+        print(f'rna: {rna} | {opt}')
+        for o in allopts:
+            print(o)
+
 def generate_rna(length: int) -> str:
     s = []
     for _ in range(length):
-        c = random.choice(['A', 'C', 'T', 'G'])
+        c = random.choice(['A', 'U', 'C', 'G'])
         s.append(c)
     return ''.join(s)
 
@@ -174,7 +251,7 @@ def distancevector(fold: list, allfolds: list):
         vector.pop()
     return vector
 
-    
-# test_min_similarities_dp()
-test_max_distance_dp()
+# test_suboptimal_fold()
+# test_max_distance_dp()
+test_suboptimal_fold()
 print("All tests passed!")
