@@ -43,7 +43,7 @@ class Solver:
             for j in range(i+1, N):
                 self.V[i][j] = self.compute_V(i, j)
                 self.W[i][j] = self.compute_W(i, j) # relies on V[i][j]
-                self.WM[i][j] = self.compute_WM(i, i) # relies on V[i][j]
+                self.WM[i][j] = self.compute_WM(i, j) # relies on V[i][j]
                 self.WM2[i][j] = self.compute_WM2(i, j)
                 
 
@@ -213,7 +213,7 @@ class Solver2:
 
     def solve(self):
         N = len(self.seq)
-        return self.V(0, N-1)
+        return self.W(0, N-1)
 
 m = 1
 a, b, c = -10, -1, -1
