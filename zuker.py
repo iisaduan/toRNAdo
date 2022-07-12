@@ -87,10 +87,10 @@ class Solver:
         # base
         if i == j or i-1 == j:
             return float('inf')
-        # Case 1: j is not paired
+        # Case 1: i is not paired
         r1 = self.WM2[i+1][j] + self.c
-        # Case 2: j is paired with k
-        # Note: j cannot pair with i
+        # Case 2: i is paired with k
+        # Note: i cannot pair with j
         r2 = float('inf')
         for k in range(i+1, j):
             energy = self.V[i][k] + self.b + self.WM[k+1][j]
@@ -101,16 +101,16 @@ class Solver:
         # base
         if i == j or i-1 == j:
             return float('inf')
-        # Case 1: j is not paired
+        # Case 1: i is not paired
         r1 = self.WM[i+1][j] + self.c
         # TODO: we can combine case 2 and case 3
-        # Case 2: j is paired with k and there are more loops outside of [k,j]
+        # Case 2: i is paired with k and there are more loops in [k+1,j]
         r2 = float('inf')
-        # Note: j can pair with i
         for k in range(i+1, j+1):
             energy = self.V[i][k] + self.b + self.WM[k+1][j]
             r2 = min(energy, r2)
-        # Case 3: j is paired with k and there are no more loops
+        # Case 3: i is paired with k and there are no more loops in in [k+1,j]
+        # Note: i can pair with j
         r3 = float('inf')
         for k in range(i+1, j+1):
             energy = self.V[i][k] + self.b + (j-k)*self.c
@@ -181,10 +181,10 @@ class Solver2:
         # base
         if i == j or i-1 == j:
             return float('inf')
-        # Case 1: j is not paired
+        # Case 1: i is not paired
         r1 = self.WM2(i+1, j) + self.c
-        # Case 2: j is paired with k
-        # Note: j cannot pair with i
+        # Case 2: i is paired with k
+        # Note: i cannot pair with j
         r2 = float('inf')
         for k in range(i+1, j):
             energy = self.V(i,k) + self.b + self.WM(k+1,j)
@@ -195,16 +195,16 @@ class Solver2:
         # base
         if i == j or i-1 == j:
             return float('inf')
-        # Case 1: j is not paired
+        # Case 1: i is not paired
         r1 = self.WM(i+1, j) + self.c
         # TODO: we can combine case 2 and case 3
-        # Case 2: j is paired with k and there are more loops outside of [k,j]
+        # Case 2: i is paired with k and there are more loops in [k+1, j]
         r2 = float('inf')
-        # Note: j can pair with i
         for k in range(i+1, j+1):
             energy = self.V(i, k) + self.b + self.WM(k+1,j)
             r2 = min(energy, r2)
-        # Case 3: j is paired with k and there are no more loops
+        # Case 3: j is paired with k and there are no more loops in [k+1, j]
+        # Note: i can pair with j
         r3 = float('inf')
         for k in range(i+1, j+1):
             energy = self.V(i, k) + self.b + (j-k)*self.c
