@@ -94,7 +94,7 @@ class Solver:
     
     def compute_V(self, i: int, j: int):
         # base
-        if not i <= j or j-i <= self.m or not self.match(i,j):
+        if j-i <= self.m or not self.match(i,j):
             self.V[i][j] = Entry(float('inf'))
             return
         entry = Entry(float('inf'))
@@ -117,12 +117,10 @@ class Solver:
                 breadcrumb = ('I', (i2,j2), [('V', i2, j2)])
                 entry.update(r3, breadcrumb)     
         # Case 4: Multiloop
-        size = j-i+1
-        if size >= 6:
-            r4 = self.a + self.WM2[i+1][j-1].val
-            breadcrumb = ('ML', None, [('WM2', i+1, j-1)])
-            entry.update(r4, breadcrumb)
-            
+        r4 = self.a + self.WM2[i+1][j-1].val
+        breadcrumb = ('ML', None, [('WM2', i+1, j-1)])
+        entry.update(r4, breadcrumb)
+
         self.V[i][j] = entry
     
     def compute_WM2(self, i: int, j: int):
