@@ -158,12 +158,15 @@ class Solver2:
     
     def V(self, i: int, j: int):
         # base
-        if (not self.match(i,j)) or j-i <= self.m:
+        if not i <= j or j-i <= self.m or not self.match(i,j):
             return float('inf')
+        rs = []
         # Case 1: Hairpin loop
         r1 = self.eH(i, j)
+        rs.append(r1)
         # Case 2: Stacking loop
         r2 = self.V(i+1, j-1) + self.eS(i,j)
+        rs.append(r2)
         # Case 3: Internal loop
         # TODO: bottle neck, maybe use heuristic to limit interior loop size
         r3 = float('inf')
@@ -172,10 +175,14 @@ class Solver2:
                 if i2 == i+1 and j2 == j-1:
                     # stacking loop has already been considered in Case 2
                     continue
-                r3 = min(self.V(i2, j2)+ self.eL(i,j,i2,j2), r3)      
+                r3 = min(self.V(i2, j2)+ self.eL(i,j,i2,j2), r3)
+        rs.append(r3)      
         # Case 4: Multiloop
-        r4 = self.a + self.WM2(i+1, j-1)  
-        return min(r1, r2, r3, r4) 
+        size = j-i+1
+        if size >= 6:
+            r4 = self.a + self.WM2(i+1, j-1)  
+            rs.append(r4)
+        return min(rs) 
     
     def WM2(self, i: int, j: int):
         # base

@@ -94,7 +94,7 @@ class Solver:
     
     def compute_V(self, i: int, j: int):
         # base
-        if j-i <= self.m or (not self.match(i,j)):
+        if not i <= j or j-i <= self.m or not self.match(i,j):
             self.V[i][j] = Entry(float('inf'))
             return
         entry = Entry(float('inf'))
@@ -117,9 +117,12 @@ class Solver:
                 breadcrumb = ('I', (i2,j2), [('V', i2, j2)])
                 entry.update(r3, breadcrumb)     
         # Case 4: Multiloop
-        r4 = self.a + self.WM2[i+1][j-1].val
-        breadcrumb = ('ML', None, [('WM2', i+1, j-1)])
-        entry.update(r4, breadcrumb)
+        size = j-i+1
+        if size >= 6:
+            r4 = self.a + self.WM2[i+1][j-1].val
+            breadcrumb = ('ML', None, [('WM2', i+1, j-1)])
+            entry.update(r4, breadcrumb)
+            
         self.V[i][j] = entry
     
     def compute_WM2(self, i: int, j: int):
@@ -166,48 +169,6 @@ class Solver:
     def solve(self):
         N = len(self.seq)
         return self.W[0][N-1].val
-
-
-
-m = 0
-a, b, c = -1, -1, -1
-eH = lambda i, j: i-j
-eS = lambda i, j: i-j
-eL = lambda i, j, i2, j2: 0
-
-rna = "ACGCGU"
-
-new_solver = Solver(rna, m, a, b, c, eH, eS, eL)
-new_solver.fill_table()
-print(new_solver.solve())
-
-import zuker
-
-def debug(solver1: Solver, solver2: zuker.Solver):
-    print()
-    print(' ' * 10, end='')
-    for i in range(len(rna)):
-        print(f'{rna[i]:>10}', end='')
-    print()
-    print(' ' * 10, end='')
-    for i in range(len(rna)):
-        print(f'{i:>10}', end='')
-    print()
-    for i in range(len(rna)):
-        print(f'{i:>10}', end="")
-        for j in range(len(rna)):
-            if not j - i >= -1:
-                print(' '*10, end="")
-                continue
-            result1 = solver1.W[i][j].val
-            result2 = solver2.W(i,j) if solver2 else ""
-            s = str(result1) + '|' + str(result2)
-            print(f'{s:>10}', end="")
-        print()
-
-if __name__ == '__main__':
-    solver2 = zuker.Solver2(rna, m, a, b, c, eH, eS, eL)
-    debug(new_solver, solver2)
 
 
 
