@@ -93,7 +93,7 @@ class Solver:
     
     def compute_V(self, i: int, j: int):
         # base
-        if j-i <= self.m or (not self.match(i,j)):
+        if j-i <= self.m or not self.match(i,j):
             self.V[i][j] = Entry(float('inf'))
             return
         entry = Entry(float('inf'))
@@ -119,6 +119,7 @@ class Solver:
         r4 = self.a + self.WM2[i+1][j-1].val
         breadcrumb = ('ML', None, [('WM2', i+1, j-1)])
         entry.update(r4, breadcrumb)
+
         self.V[i][j] = entry
     
     def compute_WM2(self, i: int, j: int):
@@ -521,8 +522,3 @@ if __name__ == '__main__':
     # debug(distance_calc.V, None)
     # debug(distance_calc.WM, None)
     # debug(distance_calc.WM2, None)
-
-    
-
-
-
