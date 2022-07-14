@@ -22,6 +22,7 @@ class Entry:
         elif val == self.val and self.val != float('inf'):
             self.eList.append(e)
 
+EntryTable = list[list[Entry]]
 
 class Solver:
     def __init__(self, seq: str, 
@@ -218,10 +219,10 @@ class DistanceCalc:
     def __init__(self,
     seq: str,
     folding: list,
-    opt_W: DistanceEntryTable,
-    opt_V: DistanceEntryTable,
-    opt_WM: DistanceEntryTable,
-    opt_WM2: DistanceEntryTable
+    opt_W: EntryTable,
+    opt_V: EntryTable,
+    opt_WM: EntryTable,
+    opt_WM2: EntryTable
     ):
         self.seq = seq
         self.folding = folding
