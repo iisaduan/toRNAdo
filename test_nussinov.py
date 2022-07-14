@@ -7,8 +7,8 @@ def test_max_distance_dp():
     Generate rnas of different sizes,
     and test the DP algorithm against the
     brute force algorithm.
-        - Test the max difference (min_similarities_dp)
-        - Test the vector (min_similarities_vec)
+        - Test the max difference
+        - Test the vector
     """
     test_range = range(5, 25)
     item_per_range = 1000
@@ -31,43 +31,13 @@ def test_max_distance_dp():
             vdp = max_distance_vec(folding, opt_solutions).v
             assert vdp == v
 
-def test_min_similarities_dp():
-    """
-    Generate rnas of different sizes,
-    and test the DP algorithm against the
-    brute force algorithm.
-        - Test the max difference (min_similarities_dp)
-        - Test the vector (min_similarities_vec)
-    """
-    test_range = range(5, 25)
-    item_per_range = 1000
-    for length in test_range:
-        print(f"Testing length = {length}...")
-        for _ in range(item_per_range):
-            rna = generate_rna(length)
-
-            maxfold, opt_solutions = nussinov_dp(rna)
-            folding = construct_one_opt_solution(rna, opt_solutions)
-
-            minsim, _ = min_similarities_dp(folding, opt_solutions)
-            maxdiff = 2*maxfold - 2*minsim 
-
-            optimal_folds = backtrack(rna, opt_solutions)
-            v = distancevector(folding, optimal_folds)
-            maxdiff_bf = len(v)-1
-            assert maxdiff == maxdiff_bf
-            
-            # Test histogram/vector calculations
-            vdp = min_similarities_vec(folding, opt_solutions).to_diff_vec(maxfold)
-            assert vdp == v
-
 def test_suboptimal_fold():
     """
     Generate rnas of different sizes,
     and test the DP algorithm against the
     brute force algorithm.
-        - Test the max difference (min_similarities_dp)
-        - Test the vector (min_similarities_vec)
+        - Test the max difference
+        - Test the vector
     """
     test_range = range(5, 6)
     item_per_range = 10
@@ -253,6 +223,6 @@ def distancevector(fold: list, allfolds: list):
 
 
 if __name__ == '__main__':
-    # test_max_distance_dp()
     test_suboptimal_fold()
+    test_max_distance_dp()
     print("All tests passed!")
