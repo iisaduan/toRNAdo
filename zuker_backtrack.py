@@ -212,16 +212,17 @@ class DistanceEntry:
             self.eList = [e]
         elif val == self.val and self.val != float('-inf'):
             self.eList.append(e)
+
 DistanceEntryTable = list[list[DistanceEntry]]
 
 class DistanceCalc:
     def __init__(self,
-    seq: str,
-    folding: list,
-    opt_W: DistanceEntryTable,
-    opt_V: DistanceEntryTable,
-    opt_WM: DistanceEntryTable,
-    opt_WM2: DistanceEntryTable
+        seq: str,
+        folding: list,
+        opt_W: DistanceEntryTable,
+        opt_V: DistanceEntryTable,
+        opt_WM: DistanceEntryTable,
+        opt_WM2: DistanceEntryTable
     ):
         self.seq = seq
         self.folding = folding
@@ -263,7 +264,7 @@ class DistanceCalc:
     def count_contained_basepairs(self) -> list:
         """
         Return a 2D list dp.
-        dp[i][j] = the number of basepairs in self.folding that are entirely contained in rna[i,j+1]
+        dp[i][j] = the number of basepairs in self.folding that are entirely contained in rna[i:j+1]
         """
         N = len(self.seq)
         dp = [[0 for j in range(N)] for i in range(N+1)]
@@ -353,7 +354,9 @@ class DistanceCalc:
                 pair_index = self.folding[i2]
                 pair_in_range = int(i2 < pair_index <= j2)  
                 # count the number of differences that are missed in recursive cases
-                count = self.contained_counts[i+1,j-1] - self.contained_counts[i2+1, j2-1]
+                count = self.contained_counts[i+1][j-1] \
+                        - self.contained_counts[i2+1][j2-1] \
+                        - (1 if pair_in_range else 0) # do not consider the pairing of i2 here
                 r = self.V[i2][j2].val \
                     + 2 * int(pair_index != j2) \
                     - (1 if not pair_in_range else 0) \
