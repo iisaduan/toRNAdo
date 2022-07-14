@@ -251,7 +251,8 @@ def distancevector(fold: list, allfolds: list):
         vector.pop()
     return vector
 
-# test_suboptimal_fold()
-# test_max_distance_dp()
-test_suboptimal_fold()
-print("All tests passed!")
+
+if __name__ == '__main__':
+    # test_max_distance_dp()
+    test_suboptimal_fold()
+    print("All tests passed!")

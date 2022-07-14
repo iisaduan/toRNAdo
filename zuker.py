@@ -66,6 +66,7 @@ class Solver:
         # base
         if j-i <= self.m or (not self.match(i,j)):
             return float('inf')
+        # TODO: if eH, eS, eL return 0, should not allow the fold
         # Case 1: Hairpin loop
         r1 = self.eH(i, j)
         # Case 2: Stacking loop
