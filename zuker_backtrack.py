@@ -88,7 +88,7 @@ class Solver:
         # case 2: i is paired with k
         for k in range(i, j+1):
             r2 = self.V[i][k].val + self.W[k+1][j].val
-            breadcrumb = ('M', (i,k), [('V', i, k), ('W', k+1, j)])
+            breadcrumb = ('M', None, [('V', i, k), ('W', k+1, j)])
             entry.update(r2, breadcrumb)
         self.W[i][j] = entry
     
@@ -100,11 +100,11 @@ class Solver:
         entry = Entry(float('inf'))
         # Case 1: Hairpin loop
         r1 = self.eH(i, j)
-        breadcrumb = ('H', None, [])
+        breadcrumb = ('H', (i, j), [])
         entry.update(r1, breadcrumb)
         # Case 2: Stacking loop
         r2 = self.V[i+1][j-1].val + self.eS(i,j)
-        breadcrumb = ('S', (i+1,j-1), [('V', i+1, j-1)])
+        breadcrumb = ('S', (i, j), [('V', i+1, j-1)])
         entry.update(r2, breadcrumb)
         # Case 3: Internal loop
         # TODO: bottle neck, maybe use heuristic to limit interior loop size
@@ -114,11 +114,11 @@ class Solver:
                     # stacking loop has already been considered in Case 2
                     continue
                 r3 = self.V[i2][j2].val+ self.eL(i,j,i2,j2)
-                breadcrumb = ('I', (i2,j2), [('V', i2, j2)])
+                breadcrumb = ('I', (i, j), [('V', i2, j2)])
                 entry.update(r3, breadcrumb)     
         # Case 4: Multiloop
         r4 = self.a + self.WM2[i+1][j-1].val
-        breadcrumb = ('ML', None, [('WM2', i+1, j-1)])
+        breadcrumb = ('ML', (i, j), [('WM2', i+1, j-1)])
         entry.update(r4, breadcrumb)
 
         self.V[i][j] = entry
@@ -137,7 +137,7 @@ class Solver:
         # Note: i cannot pair with j
         for k in range(i+1, j):
             r2 = self.V[i][k].val + self.b + self.WM[k+1][j].val
-            breadcrumb = ('M', (i,k), [('V', i, k), ("WM", k+1, j)])
+            breadcrumb = ('M', None, [('V', i, k), ("WM", k+1, j)])
             entry.update(r2, breadcrumb)
         self.WM2[i][j] = entry
     
@@ -154,19 +154,29 @@ class Solver:
         # Case 2: i is paired with k and there are more loops in [k+1,j]
         for k in range(i+1, j+1):
             r2 = self.V[i][k].val + self.b + self.WM[k+1][j].val
-            breadcrumb = ('M-WM', (i,k), [('V', i, k), ("WM", k+1, j)])
+            breadcrumb = ('M-WM', None, [('V', i, k), ("WM", k+1, j)])
             entry.update(r2, breadcrumb)
         # Case 3: i is paired with k and there are no more loops in [k+1,j]
         # Note: i can pair with j
         for k in range(i+1, j+1):
             r3 = self.V[i][k].val + self.b + (j-k)*self.c
-            breadcrumb = ('M-None', (i,k), [('V', i, k)])
+            breadcrumb = ('M-None', None, [('V', i, k)])
             entry.update(r3, breadcrumb)
         self.WM[i][j] = entry
 
     def solve(self):
         N = len(self.seq)
         return self.W[0][N-1].val
+
+    def get_table(self, tablename):
+        if tablename == 'W':
+            return self.W
+        elif tablename == 'V':
+            return self.V
+        elif tablename == 'WM2':
+            return self.WM2
+        elif tablename == 'WM':
+            return self.WM
     
     def get_one_solution_h(self, i, j, table, solution):
         if j <= i:
@@ -177,15 +187,8 @@ class Solver:
             i,j = match
             solution[i] = j
             solution[j] = i
-        for tName, i, j in recurseL:
-            if tName == "W":
-                self.get_one_solution_h(i, j, self.W, solution)
-            elif tName == "V":
-                self.get_one_solution_h(i, j, self.V, solution)
-            elif tName == "WM2":
-                self.get_one_solution_h(i, j, self.WM2, solution)
-            elif tName == "WM":
-                self.get_one_solution_h(i, j, self.WM, solution)
+        for tablename, i, j in recurseL:
+            self.get_one_solution_h(i, j, self.get_table(tablename), solution)
     
     # TODO: allow choosing a randomly selected solution/median solution etc.
     def get_one_solution(self):
@@ -195,6 +198,7 @@ class Solver:
         self.get_one_solution_h(0, N-1, self.W, solution)
         return solution
 
+# TODO: delete the following
 class DistanceEntry:
     def __init__(self,
         val: int,

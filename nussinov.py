@@ -261,6 +261,20 @@ def min_similarities_vec(folding, opt_solutions):
     
     return dp[0][N-1]
 
+def count_contained_basepairs(self) -> list:
+    """
+    Return a 2D list dp.
+    dp[i][j] = the number of basepairs in self.folding that are entirely contained in rna[i,j+1]
+    """
+    N = len(self.seq)
+    dp = [[0 for j in range(N)] for i in range(N+1)]
+    for start in reversed(range(0, N)):
+        for end in range(0, N):
+            pair_index = self.folding[start]
+            is_start_pair_contained = start < pair_index <= end
+            dp[start][end] = dp[start+1][end] + int(is_start_pair_contained)
+    return dp
+
 def count_overlapping_basepairs(folding: list) -> list:
     """
     Given an RNA folding

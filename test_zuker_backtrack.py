@@ -4,6 +4,7 @@ from zuker_backtrack import *
 import random
 
 import zuker
+from zuker_distance import DistanceSolver
 
 def test_max_distance():
     for vals in product(range(-3, 2, 1), repeat=7):
@@ -12,22 +13,35 @@ def test_max_distance():
         eH = lambda i, j: vals[4]
         eS = lambda i, j: vals[5]
         eL = lambda i, j, i2, j2: vals[6]
-        for N in range(30):
-            rna = generate_rna(9)
-            solver = Solver(rna, m, a, b, c, eH, eS, eL)
-            solver.fill_table()
-            optimal_folds = backtrack(solver)
+        for N in range(1,10):
+            for _ in range(2):
+                rna = generate_rna(N)
+                solver = Solver(rna, m, a, b, c, eH, eS, eL)
+                solver.fill_table()
+                optimal_folds = backtrack(solver)
 
-            # a random fold to compare against
-            afold = gen_random_fold(rna)
+                # a random fold to compare against
+                afold = gen_random_fold(rna)
 
-            max_distance = len(distancevector(afold, optimal_folds)) - 1
+                max_distance = len(distancevector(afold, optimal_folds)) - 1
 
-            # TODO: implement `solver.compute_max_distance_from(afold)`
-            max_distance_dp = 10
-
-            assert max_distance == max_distance_dp, \
-            f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}"
+                # result from solver
+                distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
+                                        solver.WM, solver.WM2)
+                distance_solver.fill_table()
+                max_distance_dp = distance_solver.solve()    
+                if max_distance != max_distance_dp:
+                    max_distance_solution = distance_solver.get_one_solution()
+                    print("Given folding is: ", afold)
+                    print("Ouputed farthest solution: ", max_distance_solution)
+                    print(f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}")
+                    debug2(rna, distance_solver.W)
+                    debug2(rna, distance_solver.V)
+                    debug2(rna, distance_solver.WM2)
+                    debug2(rna, distance_solver.WM)
+                assert max_distance == max_distance_dp, \
+                f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}"
+            print('.', end='', flush=True)
 
 def test_vector():
     for vals in product(range(-3, 2, 1), repeat=7):
@@ -223,6 +237,28 @@ def generate_rna(length: int) -> str:
         s.append(c)
     return ''.join(s)
 
+def debug2(rna, table, table2=None):
+    print()
+    print(' ' * 10, end='')
+    for i in range(len(rna)):
+        print(f'{rna[i]:>10}', end='')
+    print()
+    print(' ' * 10, end='')
+    for i in range(len(rna)):
+        print(f'{i:>10}', end='')
+    print()
+    for i in range(len(rna)):
+        print(f'{i:>10}', end="")
+        for j in range(len(rna)):
+            if not j - i >= -1:
+                print(' '*10, end="")
+                continue
+            result1 = table[i][j].val
+            result2 = table2[i][j] if table2 else ""
+            s = str(result1) + '|' + str(result2)
+            print(f'{s:>10}', end="")
+        print()
+
 def debug(rna, solver1: Solver, solver2: zuker.Solver):
     print()
     print(' ' * 10, end='')
@@ -291,5 +327,6 @@ if __name__ == '__main__':
 
     # result = backtrack(solver)
     # print(result)
+    # test_params()
     test_max_distance()
-    test_vector()
+    # test_vector()
