@@ -190,14 +190,12 @@ class Solver:
         for tablename, i, j in recurseL:
             self.get_one_solution_h(i, j, self.get_table(tablename), solution)
     
-    # TODO: allow choosing a randomly selected solution/median solution etc.
     def get_one_solution(self):
         """get an arbitrary solution"""
         N = len(self.seq)
         solution = [i for i in range(N)]
         self.get_one_solution_h(0, N-1, self.W, solution)
         return solution
-
 
 if __name__ == '__main__':
     # Example of how to use this solver

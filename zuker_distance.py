@@ -1,4 +1,5 @@
 from zuker_backtrack import EntryTable
+from distance_vector import V
 
 ThingToRecurseOn = list[tuple[str, int, int]]
 E = tuple[str, tuple[int, int], list[ThingToRecurseOn]]
@@ -44,40 +45,43 @@ class DistanceSolver:
         self.contained_counts = self.count_contained_basepairs()
         # create DP tables for calculating max distance
         N = len(self.seq)
-        self.W =   [[DistanceEntry(None) for j in range(N)] for i in range(N+1)]
-        self.V =   [[DistanceEntry(None) for j in range(N)] for i in range(N+1)]
-        self.WM =  [[DistanceEntry(None) for j in range(N)] for i in range(N+1)]
-        self.WM2 = [[DistanceEntry(None) for j in range(N)] for i in range(N+1)]
+        self.maxdist_W =   [[DistanceEntry(None) for j in range(N)] for i in range(N+1)]
+        self.maxdist_V =   [[DistanceEntry(None) for j in range(N)] for i in range(N+1)]
+        self.maxdist_WM =  [[DistanceEntry(None) for j in range(N)] for i in range(N+1)]
+        self.maxdist_WM2 = [[DistanceEntry(None) for j in range(N)] for i in range(N+1)]
+        # create DP tables for calculating distance vectors
+        self.vec_W =   [[None for j in range(N)] for i in range(N+1)]
+        self.vec_V =   [[None for j in range(N)] for i in range(N+1)]
+        self.vec_WM =  [[None for j in range(N)] for i in range(N+1)]
+        self.vec_WM2 = [[None for j in range(N)] for i in range(N+1)]
     
-    def fill_table(self):
+    def fill_distance_table(self):
         N = len(self.seq)
         for i in range(0, N):
-            self.compute("W", i, i)
-            self.compute("V", i, i)
-            self.compute("WM", i, i)
-            self.compute("WM2", i, i)
-            
-            self.compute("W", i+1, i)
-            self.compute("V", i+1, i)
-            self.compute("WM", i+1, i)
-            self.compute("WM2", i+1, i)
+            for tablename in ["W", "V", "WM", "WM2"]:
+                self.compute_max_distance(tablename, i, i)
+                self.compute_max_distance(tablename, i+1, i)
 
         for i in reversed(range(0, N)):
             for j in range(i+1, N):
-                self.compute("V", i, j)
-                self.compute("W", i, j) # relies on V[i][j]
-                self.compute("WM", i, j) # relies on V[i][j]
-                self.compute("WM2", i, j)
+                self.compute_max_distance("V", i, j)
+                self.compute_max_distance("W", i, j) # relies on V[i][j]
+                self.compute_max_distance("WM", i, j) # relies on V[i][j]
+                self.compute_max_distance("WM2", i, j)
     
-    def get_table(self, tablename):
-        if tablename == 'W':
-            return self.W
-        elif tablename == 'V':
-            return self.V
-        elif tablename == 'WM2':
-            return self.WM2
-        elif tablename == 'WM':
-            return self.WM
+    def fill_vector_table(self):
+        N = len(self.seq)
+        for i in range(0, N):
+            for tablename in ["W", "V", "WM", "WM2"]:
+                self.compute_vec(tablename, i, i)
+                self.compute_vec(tablename, i+1, i)
+
+        for i in reversed(range(0, N)):
+            for j in range(i+1, N):
+                self.compute_vec("V", i, j)
+                self.compute_vec("W", i, j) # relies on V[i][j]
+                self.compute_vec("WM", i, j) # relies on V[i][j]
+                self.compute_vec("WM2", i, j)
     
     def get_opt_table(self, tablename):
         if tablename == 'W':
@@ -88,6 +92,26 @@ class DistanceSolver:
             return self.opt_WM2
         elif tablename == 'WM':
             return self.opt_WM
+
+    def get_max_dist_table(self, tablename):
+        if tablename == 'W':
+            return self.maxdist_W
+        elif tablename == 'V':
+            return self.maxdist_V
+        elif tablename == 'WM2':
+            return self.maxdist_WM2
+        elif tablename == 'WM':
+            return self.maxdist_WM
+    
+    def get_vec_table(self, tablename):
+        if tablename == 'W':
+            return self.vec_W
+        elif tablename == 'V':
+            return self.vec_V
+        elif tablename == 'WM2':
+            return self.vec_WM2
+        elif tablename == 'WM':
+            return self.vec_WM
     
     def count_contained_basepairs(self) -> list:
         """
@@ -103,8 +127,8 @@ class DistanceSolver:
                 dp[start][end] = dp[start+1][end] + int(is_start_pair_contained)
         return dp
     
-    def compute(self, tablename, i, j):
-        table = self.get_table(tablename)
+    def compute_max_distance(self, tablename, i, j):
+        table = self.get_max_dist_table(tablename)
         opt_table = self.get_opt_table(tablename)
         # base
         if i == j or i-1 == j:
@@ -121,7 +145,7 @@ class DistanceSolver:
             # total number of basepairs in folding[i:j+1]
             distance = self.contained_counts[i][j]
             for newtableName, new_i, new_j in recurseL:
-                distance += self.get_table(newtableName)[new_i][new_j].val
+                distance += self.get_max_dist_table(newtableName)[new_i][new_j].val
                 # subtract the basepairs that are considered in recursive calls
                 distance -= self.contained_counts[new_i][new_j]
             if match:
@@ -145,9 +169,9 @@ class DistanceSolver:
     
     def solve(self):
         N = len(self.seq)
-        return self.W[0][N-1].val
+        return self.maxdist_W[0][N-1].val, self.vec_W[0][N-1]
     
-    def get_one_solution_h(self, i, j, table, solution):
+    def get_one_max_dist_solution_h(self, i, j, table, solution):
         if j <= i:
             return
         # choose the first solution
@@ -157,15 +181,62 @@ class DistanceSolver:
             solution[i] = j
             solution[j] = i
         for tablename, i, j in recurseL:
-            self.get_one_solution_h(i, j, self.get_table(tablename), solution)
+            self.get_one_max_dist_solution_h(i, j, \
+                self.get_max_dist_table(tablename), solution)
     
-    # TODO: allow choosing a randomly selected solution/median solution etc.
-    def get_one_solution(self):
+    def get_one_max_dist_solution(self):
         """get an arbitrary solution"""
         N = len(self.seq)
         solution = [i for i in range(N)]
-        self.get_one_solution_h(0, N-1, self.W, solution)
+        self.get_one_max_dist_solution_h(0, N-1, self.W, solution)
         return solution
+    
+    def compute_vec(self, tablename, i, j):
+        table = self.get_vec_table(tablename)
+        opt_table = self.get_opt_table(tablename)
+        # base
+        if i == j or i-1 == j:
+            if tablename == "W":
+                # one solution of distance 0
+                # and no solution of other distance
+                table[i][j] = V([1])
+            else:
+                # no solution of any distance 
+                # since there is no valid solution
+                table[i][j] = V([0])
+            return
+        opt_choices = opt_table[i][j].eList
+        vec = V([0])
+        for choice in opt_choices:
+            new_vec = V([1])
+            _, match, recurseL = choice
+            # total number of basepairs in folding[i:j+1]
+            shift = self.contained_counts[i][j]
+            for newtableName, new_i, new_j in recurseL:
+                new_vec = new_vec ^ self.get_vec_table(newtableName)[new_i][new_j]
+                # subtract the basepairs that are considered in recursive calls
+                shift -= self.contained_counts[new_i][new_j]
+            if match:
+                # (i,j) is the match in the current optimal choice
+                # check the pairing of i in the given folding
+                pair_index = self.folding[i]
+                # i is unpaired in folding
+                if i == pair_index:
+                    shift += 1
+                # i is paired to the same index
+                elif pair_index == j:
+                    shift -= 1
+                # i is paired to a different index
+                elif i < pair_index < j:
+                    shift += 1
+                # i is paired to an index not in the range
+                else:
+                    shift += 1
+            new_vec = (new_vec >> shift)
+            vec += new_vec
+        table[i][j] = vec
+
+
 
 
 

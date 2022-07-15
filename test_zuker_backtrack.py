@@ -7,6 +7,8 @@ import zuker
 from zuker_distance import DistanceSolver
 
 def test_max_distance():
+    print (". = 1000 tests")
+    count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
         m, a, b, c = vals[:4]
         if m < 0: continue
@@ -28,10 +30,10 @@ def test_max_distance():
                 # result from solver
                 distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
                                         solver.WM, solver.WM2)
-                distance_solver.fill_table()
-                max_distance_dp = distance_solver.solve()    
+                distance_solver.fill_distance_table()
+                max_distance_dp = distance_solver.solve()[0]   
                 if max_distance != max_distance_dp:
-                    max_distance_solution = distance_solver.get_one_solution()
+                    max_distance_solution = distance_solver.get_one_max_dist_solution()
                     print("Given folding is: ", afold)
                     print("Ouputed farthest solution: ", max_distance_solution)
                     print(f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}")
@@ -41,31 +43,43 @@ def test_max_distance():
                     debug2(rna, distance_solver.WM)
                 assert max_distance == max_distance_dp, \
                 f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}"
-            print('.', end='', flush=True)
+                count += 1
+                if count % 1000 == 0:
+                    print('.', end='', flush=True)
+    print()
+    print("All tests passed!")
 
 def test_vector():
+    print (". = 1000 tests")
+    count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
         m, a, b, c = vals[:4]
         if m < 0: continue
         eH = lambda i, j: vals[4]
         eS = lambda i, j: vals[5]
         eL = lambda i, j, i2, j2: vals[6]
-        for N in range(30):
-            rna = generate_rna(9)
-            solver = Solver(rna, m, a, b, c, eH, eS, eL)
-            solver.fill_table()
-            optimal_folds = backtrack(solver)
+        for N in range(10, 30):
+            for _ in range(2):
+                rna = generate_rna(N)
+                solver = Solver(rna, m, a, b, c, eH, eS, eL)
+                solver.fill_table()
+                optimal_folds = backtrack(solver)
 
-            # a random fold to compare against
-            afold = gen_random_fold(rna)
+                # a random fold to compare against
+                afold = gen_random_fold(rna)
 
-            vector = len(distancevector(afold, optimal_folds)) - 1
+                vector = distancevector(afold, optimal_folds)
 
-            # TODO: implement `solver.compute_vector_from(afold)`
-            vector_dp = [1,2,3]
+                distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
+                                            solver.WM, solver.WM2)
+                distance_solver.fill_vector_table()
+                vector_dp = distance_solver.solve()[1]   
 
-            assert vector == vector_dp, \
-            f"Vector does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={vector} got={vector_dp}"
+                assert vector == vector_dp.v, \
+                f"Vector does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={vector} got={vector_dp}"
+                count += 1
+                if count % 1000 == 0:
+                    print('.', end='', flush=True)
 
 def gen_random_fold_h(rna: str, i: int, j: int, fold: list[int]):
     if i == j: return
@@ -328,5 +342,5 @@ if __name__ == '__main__':
     # result = backtrack(solver)
     # print(result)
     # test_params()
-    test_max_distance()
-    # test_vector()
+    # test_max_distance()
+    test_vector()

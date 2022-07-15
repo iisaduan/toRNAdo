@@ -104,7 +104,6 @@ class Solver:
             return float('inf')
         # Case 1: i is not paired
         r1 = self.WM[i+1][j] + self.c
-        # TODO: we can combine case 2 and case 3
         # Case 2: i is paired with k and there are more loops in [k+1,j]
         r2 = float('inf')
         for k in range(i+1, j+1):
@@ -198,7 +197,6 @@ class Solver2:
             return float('inf')
         # Case 1: i is not paired
         r1 = self.WM(i+1, j) + self.c
-        # TODO: we can combine case 2 and case 3
         # Case 2: i is paired with k and there are more loops in [k+1, j]
         r2 = float('inf')
         for k in range(i+1, j+1):
