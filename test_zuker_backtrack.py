@@ -6,15 +6,68 @@ import random
 import zuker
 from zuker_distance import DistanceSolver
 
+def test_default_energy_functions():
+    for N in range(10,20):
+        for _ in range(1):
+            # m, a, b, c = 0, 0, 0, 0
+            # eH = lambda s, i, j: 0
+            # eS = lambda s, i, j: 0
+            # eL = lambda s, i, j, i2, j2: 0
+            rna = generate_rna(N)
+            # solver = Solver(rna, m, a, b, c, eH, eS, eL)
+            solver = Solver(rna)
+            solver.fill_table()
+            optimal_folds = backtrack(solver)
+            min_energy = solver.solve()
+            print("The number optimal folds is: ", len(optimal_folds))
+            print("Min energy is: ", min_energy)
+            assert min_energy <= 0
+
+            # # a random fold to compare against
+            # afold = gen_random_fold(rna)
+
+            # # result from solver
+            # distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
+            #                         solver.WM, solver.WM2)
+            # distance_solver.fill_distance_table()
+            # distance_solver.fill_vector_table()
+            # max_distance_dp = distance_solver.solve()[0]   
+            # vector_dp = distance_solver.solve()[1]
+            # assert max_distance == max_distance_dp, \
+            # f"Max distance does not match for rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}"
+            # assert vector == vector_dp, \
+            # f"Vector does not match for rna={rna} afold={afold} | expected={vector} got={vector_dp}"
+        print(N)
+    print()
+    print("All tests passed!")
+
+
+def run_default_energy_functions(rna):
+    solver = Solver(rna)
+    solver.fill_table()
+    optimal_folds = backtrack(solver)
+    print("The number optimal folds is: ", len(optimal_folds))
+    print("Min energy is: ", solver.solve())
+
+    # a random fold to compare against
+    afold = gen_random_fold(rna)
+    distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
+                                solver.WM, solver.WM2)
+    distance_solver.fill_distance_table()
+    distance_solver.fill_vector_table()
+    vector_dp = distance_solver.solve()[1]
+    print("The vector is: ", vector_dp)
+    print("Max distance is: ", distance_solver.solve()[0])
+
 def test_max_distance():
     print (". = 1000 tests")
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
         m, a, b, c = vals[:4]
-        if m < 0: continue
-        eH = lambda i, j: vals[4]
-        eS = lambda i, j: vals[5]
-        eL = lambda i, j, i2, j2: vals[6]
+        if m <= 0: continue
+        eH = lambda s, i, j: vals[4]
+        eS = lambda s, i, j: vals[5]
+        eL = lambda s, i, j, i2, j2: vals[6]
         for N in range(1,10):
             for _ in range(2):
                 rna = generate_rna(N)
@@ -31,16 +84,18 @@ def test_max_distance():
                 distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
                                         solver.WM, solver.WM2)
                 distance_solver.fill_distance_table()
-                max_distance_dp = distance_solver.solve()[0]   
+                max_distance_dp = distance_solver.solve()[0]  
+                distance_solver.fill_vector_table()
+                vector_dp = distance_solver.solve()[1] 
                 if max_distance != max_distance_dp:
                     max_distance_solution = distance_solver.get_one_max_dist_solution()
                     print("Given folding is: ", afold)
                     print("Ouputed farthest solution: ", max_distance_solution)
                     print(f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}")
-                    debug2(rna, distance_solver.W)
-                    debug2(rna, distance_solver.V)
-                    debug2(rna, distance_solver.WM2)
-                    debug2(rna, distance_solver.WM)
+                    debug2(rna, distance_solver.maxdist_W)
+                    debug2(rna, distance_solver.maxdist_V)
+                    debug2(rna, distance_solver.maxdist_WM2)
+                    debug2(rna, distance_solver.maxdist_WM)
                 assert max_distance == max_distance_dp, \
                 f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}"
                 count += 1
@@ -54,10 +109,10 @@ def test_vector():
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
         m, a, b, c = vals[:4]
-        if m < 0: continue
-        eH = lambda i, j: vals[4]
-        eS = lambda i, j: vals[5]
-        eL = lambda i, j, i2, j2: vals[6]
+        if m <= 0: continue
+        eH = lambda s, i, j: vals[4]
+        eS = lambda s, i, j: vals[5]
+        eL = lambda s, i, j, i2, j2: vals[6]
         for N in range(10, 30):
             for _ in range(2):
                 rna = generate_rna(N)
@@ -73,9 +128,9 @@ def test_vector():
                 distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
                                             solver.WM, solver.WM2)
                 distance_solver.fill_vector_table()
-                vector_dp = distance_solver.solve()[1]   
+                vector_dp = distance_solver.solve()[1]
 
-                assert vector == vector_dp.v, \
+                assert vector == vector_dp, \
                 f"Vector does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={vector} got={vector_dp}"
                 count += 1
                 if count % 1000 == 0:
@@ -199,10 +254,10 @@ def test_backtrack():
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
         m, a, b, c = vals[:4]
-        if m < 0: continue
-        eH = lambda i, j: vals[4]
-        eS = lambda i, j: vals[5]
-        eL = lambda i, j, i2, j2: vals[6]
+        if m <= 0: continue
+        eH = lambda s, i, j: vals[4]
+        eS = lambda s, i, j: vals[5]
+        eL = lambda s, i, j, i2, j2: vals[6]
         for _ in range(2):
             rna = generate_rna(9)
             solver = Solver(rna, m, a, b, c, eH, eS, eL)
@@ -220,10 +275,10 @@ def test_params():
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
         m, a, b, c = vals[:4]
-        if m < 0: continue
-        eH = lambda i, j: vals[4]
-        eS = lambda i, j: vals[5]
-        eL = lambda i, j, i2, j2: vals[6]
+        if m <= 0: continue
+        eH = lambda s, i, j: vals[4]
+        eS = lambda s, i, j: vals[5]
+        eL = lambda s, i, j, i2, j2: vals[6]
         for _ in range(3):
             rna = generate_rna(5)
             dpsolver = Solver(rna, m, a, b, c, eH, eS, eL)
@@ -330,9 +385,9 @@ if __name__ == '__main__':
     # debug(new_solver, solver2)
     # m = 0
     # a, b, c = -1, 0, 0
-    # eH = lambda i, j: -1
-    # eS = lambda i, j: -1
-    # eL = lambda i, j, i2, j2: 0
+    # eH = lambda s, i, j: -1
+    # eS = lambda s, i, j: -1
+    # eL = lambda s, i, j, i2, j2: 0
 
     # rna = "ACGCGU"
 
@@ -343,4 +398,9 @@ if __name__ == '__main__':
     # print(result)
     # test_params()
     # test_max_distance()
-    test_vector()
+    # test_vector()
+    rna = "cttcccaggt aacaaaccaa ccaactttcg atctcttgta gatctgttct ctaaacgaac"\
+            +"tttaaaatct gtgtggctgt cactcggctg catgcttagt gcactcacgc agtataatta"
+    # test_default_energy_functions(rna.replace(" ","").replace("t", "u").upper())
+    # run_default_energy_functions("AUCG")
+    test_default_energy_functions()

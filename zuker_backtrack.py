@@ -1,4 +1,8 @@
 from typing import Callable
+from seqfold.fold import _hairpin
+from seqfold.fold import _stack
+from seqfold.fold import _internal_loop
+from seqfold.rna import RNA_ENERGIES
 
 ThingToRecurseOn = list[tuple[str, int, int]]
 E = tuple[str, tuple[int, int], list[ThingToRecurseOn]]
@@ -26,29 +30,32 @@ EntryTable = list[list[Entry]]
 
 class Solver:
     def __init__(self, seq: str, 
-        m: int,
-        a: int,
-        b: int,
-        c: int,
-        eH: Callable[[int, int], int],
-        eS: Callable[[int, int], int],
-        eL: Callable[[int, int], int]
+        m: int = None,
+        a: int = None,
+        b: int = None,
+        c: int = None,
+        eH: Callable[[str, int, int], int] = None,
+        eS: Callable[[str, int, int], int] = None,
+        eL: Callable[[str, int, int, int, int], int] = None
     ):
         self.seq = seq
-        self.m = m # minimum seperation for a pair
-        self.a = a
-        self.b = b
-        self.c = c
-        self.eH = eH
-        self.eS = eS
-        self.eL = eL
+        self.m = m if m is not None else 4 # minimum seperation for a pair
+        self.a = a if a is not None else RNA_ENERGIES.MULTIBRANCH[0]
+        self.b = b if b is not None else RNA_ENERGIES.MULTIBRANCH[1]
+        self.c = c if c is not None else RNA_ENERGIES.MULTIBRANCH[2]
+        self.eH = eH if eH is not None else \
+            lambda s, i, j: int(_hairpin(s, i, j, float(37.0), RNA_ENERGIES))
+        self.eS = eS if eS is not None else \
+            lambda s, i, j: int(_stack(self.seq, i, i+1, j, j-1, float(37.0), RNA_ENERGIES))
+        self.eL = eL if eL is not None else \
+            lambda s, i, j, i2, j2: int(_internal_loop(self.seq, i, i2, j, j2, float(37.0), RNA_ENERGIES))
 
         # create table
         N = len(self.seq)
         self.W =   [[Entry(None) for j in range(N)] for i in range(N+1)]
         self.V =   [[Entry(None) for j in range(N)] for i in range(N+1)]
         self.WM =  [[Entry(None) for j in range(N)] for i in range(N+1)]
-        self.WM2 = [[Entry(None) for j in range(N)] for i in range(N+1)]
+        self.WM2 = [[Entry(None) for j in range(N)] for i in range(N+1)]      
     
     def fill_table(self):
         N = len(self.seq)
@@ -94,18 +101,19 @@ class Solver:
     
     def compute_V(self, i: int, j: int):
         # base
-        if j-i <= self.m or not self.match(i,j):
+        if j-i < self.m or not self.match(i,j):
             self.V[i][j] = Entry(float('inf'))
             return
         entry = Entry(float('inf'))
         # Case 1: Hairpin loop
-        r1 = self.eH(i, j)
+        r1 = self.eH(self.seq, i, j)
         breadcrumb = ('H', (i, j), [])
         entry.update(r1, breadcrumb)
         # Case 2: Stacking loop
-        r2 = self.V[i+1][j-1].val + self.eS(i,j)
-        breadcrumb = ('S', (i, j), [('V', i+1, j-1)])
-        entry.update(r2, breadcrumb)
+        if self.match(i+1, j-1):
+            r2 = self.V[i+1][j-1].val + self.eS(self.seq, i, j)
+            breadcrumb = ('S', (i, j), [('V', i+1, j-1)])
+            entry.update(r2, breadcrumb)
         # Case 3: Internal loop
         # TODO: bottle neck, maybe use heuristic to limit interior loop size
         for i2 in range(i+1, j):
@@ -113,9 +121,10 @@ class Solver:
                 if i2 == i+1 and j2 == j-1:
                     # stacking loop has already been considered in Case 2
                     continue
-                r3 = self.V[i2][j2].val+ self.eL(i,j,i2,j2)
-                breadcrumb = ('I', (i, j), [('V', i2, j2)])
-                entry.update(r3, breadcrumb)     
+                if self.match(i2, j2):
+                    r3 = self.V[i2][j2].val+ self.eL(self.seq, i, j, i2, j2)
+                    breadcrumb = ('I', (i, j), [('V', i2, j2)])
+                    entry.update(r3, breadcrumb)     
         # Case 4: Multiloop
         r4 = self.a + self.WM2[i+1][j-1].val
         breadcrumb = ('ML', (i, j), [('WM2', i+1, j-1)])
@@ -196,6 +205,28 @@ class Solver:
         solution = [i for i in range(N)]
         self.get_one_solution_h(0, N-1, self.W, solution)
         return solution
+
+    # def convert_folding_to_dbn() -> :
+
+    # def convert_DBN_to_folding(dbn: str) -> list:
+    # dbn_length = len(dbn)
+    # folding = [i for i in range(dbn_length)]
+    # count = 0
+    # index_array = [-1 for i in range(dbn_length)]
+    # for index in range(dbn_length):
+    #     if dbn[index] == "(":
+    #         count += 1
+    #         index_array[count] = index
+    #     elif dbn[index] == ")":
+    #         pair_index = index_array[count]
+    #         assert pair_index != -1
+    #         folding[index] = pair_index
+    #         folding[pair_index] = index
+    #         count -= 1
+    #     else:
+    #         pass
+    # return folding
+
 
 if __name__ == '__main__':
     # Example of how to use this solver

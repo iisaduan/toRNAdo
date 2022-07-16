@@ -8,7 +8,7 @@ class Solver:
         c: int,
         eH: Callable[[int, int], int],
         eS: Callable[[int, int], int],
-        eL: Callable[[int, int], int]
+        eL: Callable[[int, int, int, int], int]
     ):
         self.seq = seq
         self.m = m # minimum seperation for a pair
@@ -64,7 +64,7 @@ class Solver:
     
     def compute_V(self, i: int, j: int):
         # base
-        if j-i <= self.m or (not self.match(i,j)):
+        if j-i < self.m or (not self.match(i,j)):
             return float('inf')
         # TODO: if eH, eS, eL return 0, should not allow the fold
         # Case 1: Hairpin loop
@@ -127,9 +127,9 @@ class Solver2:
         a: int,
         b: int,
         c: int,
-        eH: Callable[[int, int], int],
-        eS: Callable[[int, int], int],
-        eL: Callable[[int, int], int]
+        eH: Callable[[str, int, int], int],
+        eS: Callable[[str, int, int], int],
+        eL: Callable[[str, int, int, int, int], int]
     ):
         self.seq = seq
         self.m = m # minimum seperation for a pair
@@ -158,12 +158,12 @@ class Solver2:
     
     def V(self, i: int, j: int):
         # base
-        if j-i <= self.m or not self.match(i,j):
+        if j-i < self.m or not self.match(i,j):
             return float('inf')
         # Case 1: Hairpin loop
-        r1 = self.eH(i, j)
+        r1 = self.eH(self.seq, i, j)
         # Case 2: Stacking loop
-        r2 = self.V(i+1, j-1) + self.eS(i,j)
+        r2 = self.V(i+1, j-1) + self.eS(self.seq, i,j)
         # Case 3: Internal loop
         # TODO: bottle neck, maybe use heuristic to limit interior loop size
         r3 = float('inf')
@@ -172,7 +172,7 @@ class Solver2:
                 if i2 == i+1 and j2 == j-1:
                     # stacking loop has already been considered in Case 2
                     continue
-                r3 = min(self.V(i2, j2)+ self.eL(i,j,i2,j2), r3)  
+                r3 = min(self.V(i2, j2)+ self.eL(self.seq, i,j,i2,j2), r3)  
         # Case 4: Multiloop
         r4 = self.a + self.WM2(i+1, j-1)  
         return min(r1, r2, r3, r4) 
