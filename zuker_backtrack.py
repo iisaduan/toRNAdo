@@ -1,3 +1,4 @@
+from decimal import Decimal, getcontext
 from typing import Callable
 from seqfold.fold import _hairpin
 from seqfold.fold import _stack
@@ -6,10 +7,11 @@ from seqfold.rna import RNA_ENERGIES
 
 ThingToRecurseOn = list[tuple[str, int, int]]
 E = tuple[str, tuple[int, int], list[ThingToRecurseOn]]
+getcontext().prec = 2
 
 class Entry:
     def __init__(self,
-        val: float,
+        val: Decimal,
         eList: list[E] = None
     ):
         if eList is None:
@@ -17,13 +19,13 @@ class Entry:
         self.val = val
         self.eList = eList
 
-    def update(self, val: float, e: E = None):
+    def update(self, val: Decimal, e: E = None):
         # e: tuple['Event', tuple[i,j]/None, list[ThingToRecurseOn]]
         # ThingToRecurseOn: tuple['TableName', i, j]
         if val < self.val:
             self.val = val
             self.eList = [e]
-        elif val == self.val and self.val != float('inf'):
+        elif val == self.val and self.val != Decimal('Infinity'):
             self.eList.append(e)
 
 EntryTable = list[list[Entry]]
@@ -31,24 +33,24 @@ EntryTable = list[list[Entry]]
 class Solver:
     def __init__(self, seq: str, 
         m: int = None,
-        a: int = None,
-        b: int = None,
-        c: int = None,
-        eH: Callable[[str, int, int], int] = None,
-        eS: Callable[[str, int, int], int] = None,
-        eL: Callable[[str, int, int, int, int], int] = None
+        a: float = None,
+        b: float = None,
+        c: float = None,
+        eH: Callable[[str, int, int], float] = None,
+        eS: Callable[[str, int, int], float] = None,
+        eL: Callable[[str, int, int, int, int], float] = None
     ):
         self.seq = seq
         self.m = m if m is not None else 4 # minimum seperation for a pair
-        self.a = a if a is not None else RNA_ENERGIES.MULTIBRANCH[0]
-        self.b = b if b is not None else RNA_ENERGIES.MULTIBRANCH[1]
-        self.c = c if c is not None else RNA_ENERGIES.MULTIBRANCH[2]
+        self.a = a if a is not None else Decimal(RNA_ENERGIES.MULTIBRANCH[0])
+        self.b = b if b is not None else Decimal(RNA_ENERGIES.MULTIBRANCH[1])
+        self.c = c if c is not None else Decimal(RNA_ENERGIES.MULTIBRANCH[2])
         self.eH = eH if eH is not None else \
-            lambda s, i, j: int(_hairpin(s, i, j, float(37.0), RNA_ENERGIES))
+            lambda s, i, j: Decimal(_hairpin(s, i, j, float('37.0'), RNA_ENERGIES))
         self.eS = eS if eS is not None else \
-            lambda s, i, j: int(_stack(self.seq, i, i+1, j, j-1, float(37.0), RNA_ENERGIES))
+            lambda s, i, j: Decimal(_stack(self.seq, i, i+1, j, j-1, float('37.0'), RNA_ENERGIES))
         self.eL = eL if eL is not None else \
-            lambda s, i, j, i2, j2: int(_internal_loop(self.seq, i, i2, j, j2, float(37.0), RNA_ENERGIES))
+            lambda s, i, j, i2, j2: Decimal(_internal_loop(self.seq, i, i2, j, j2, float('37.0'), RNA_ENERGIES))
 
         # create table
         N = len(self.seq)
@@ -84,9 +86,9 @@ class Solver:
     def compute_W(self, i: int, j: int):
         # base
         if i == j or i-1 == j:
-            self.W[i][j] = Entry(0)
+            self.W[i][j] = Entry(Decimal('0'))
             return
-        entry = Entry(float('inf'))
+        entry = Entry(Decimal('Infinity'))
         # case 1: i is not paired
         r1 = self.W[i+1][j].val
         breadcrumb = ('L', None, [('W', i+1, j)])
@@ -102,9 +104,9 @@ class Solver:
     def compute_V(self, i: int, j: int):
         # base
         if j-i < self.m or not self.match(i,j):
-            self.V[i][j] = Entry(float('inf'))
+            self.V[i][j] = Entry(Decimal('Infinity'))
             return
-        entry = Entry(float('inf'))
+        entry = Entry(Decimal('Infinity'))
         # Case 1: Hairpin loop
         r1 = self.eH(self.seq, i, j)
         breadcrumb = ('H', (i, j), [])
@@ -135,9 +137,9 @@ class Solver:
     def compute_WM2(self, i: int, j: int):
         # base
         if i == j or i-1 == j:
-            self.WM2[i][j] = Entry(float('inf'))
+            self.WM2[i][j] = Entry(Decimal('Infinity'))
             return
-        entry = Entry(float('inf'))
+        entry = Entry(Decimal('Infinity'))
         # Case 1: i is not paired
         r1 = self.WM2[i+1][j].val + self.c
         breadcrumb = ('L', None, [('WM2', i+1, j)])
@@ -153,9 +155,9 @@ class Solver:
     def compute_WM(self, i: int, j: int):
         # base
         if i == j or i-1 == j:
-            self.WM[i][j] = Entry(float('inf'))
+            self.WM[i][j] = Entry(Decimal('Infinity'))
             return
-        entry = Entry(float('inf'))
+        entry = Entry(Decimal('Infinity'))
         # Case 1: i is not paired
         r1 = self.WM[i+1][j].val + self.c
         breadcrumb = ('L', None, [('WM', i+1, j)])

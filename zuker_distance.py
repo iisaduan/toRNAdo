@@ -14,7 +14,7 @@ class DistanceEntry:
         self.val = val
         self.eList = eList
 
-    def update(self, val: float, e: E = None):
+    def update(self, val: int, e: E = None):
         # e: tuple['Event', tuple[i,j]/None, list[ThingToRecurseOn]]
         # ThingToRecurseOn: tuple['TableName', i, j]
         if val > self.val:

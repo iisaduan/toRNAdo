@@ -366,4 +366,19 @@ if __name__ == '__main__':
     # test_params()
     # test_max_distance()
     # test_vector()
-    test_default_energy_functions()
+    # test_default_energy_functions()
+
+    # rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACGAACUUUAAAAUCUGUGUGGCUGUCACUCGGCUGCAUGCUUAGUGCACUCACGCAGUAUAAUUA"
+    # print("-----Running Zuker algorithm-----")
+    # # run Zuker algorithm to get optimal folds
+    # solver = Solver(rna)
+    # solver.fill_table()
+    # min_energy = solver.solve()
+    # print("The minimum energy is: ", min_energy)
+
+    # for i in range(len(rna)):
+    #     for j in range(len(rna)):
+    #         if not j - i >= -1:
+    #             continue
+    #         print(solver.W[i][j].val, end=" ", flush=True)
+    pass
