@@ -208,26 +208,6 @@ class Solver:
         self.get_one_solution_h(0, N-1, self.W, solution)
         return solution
 
-    # def convert_folding_to_dbn() -> :
-
-    # def convert_DBN_to_folding(dbn: str) -> list:
-    # dbn_length = len(dbn)
-    # folding = [i for i in range(dbn_length)]
-    # count = 0
-    # index_array = [-1 for i in range(dbn_length)]
-    # for index in range(dbn_length):
-    #     if dbn[index] == "(":
-    #         count += 1
-    #         index_array[count] = index
-    #     elif dbn[index] == ")":
-    #         pair_index = index_array[count]
-    #         assert pair_index != -1
-    #         folding[index] = pair_index
-    #         folding[pair_index] = index
-    #         count -= 1
-    #     else:
-    #         pass
-    # return folding
 
 
 if __name__ == '__main__':

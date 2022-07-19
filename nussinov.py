@@ -91,25 +91,6 @@ def construct_one_opt_solution(rna, opt_solutions=None):
     construct_one_opt_solution_helper(0, N-1, opt_solutions, constructed_solution)
     return constructed_solution
 
-def convert_DBN_to_folding(dbn: str) -> list:
-    dbn_length = len(dbn)
-    folding = [i for i in range(dbn_length)]
-    count = 0
-    index_array = [-1 for i in range(dbn_length)]
-    for index in range(dbn_length):
-        if dbn[index] == "(":
-            count += 1
-            index_array[count] = index
-        elif dbn[index] == ")":
-            pair_index = index_array[count]
-            assert pair_index != -1
-            folding[index] = pair_index
-            folding[pair_index] = index
-            count -= 1
-        else:
-            pass
-    return folding
-
 def count_matched_basepairs(folding) -> list:
     """
     Return a 2D list dp.
