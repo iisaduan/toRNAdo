@@ -1,3 +1,5 @@
+# Copied from https://github.com/Lattice-Automation/seqfold/blob/master/seqfold/rna.py
+
 """RNA enthalpy and entropy change parameters."""
 
 from .types import Comp, MultiBranch, BpEnergy, LoopEnergy, Energies

@@ -1,4 +1,5 @@
-"""Predict nucleic acid secondary structure"""
+# Calculates the energy for different types of loops
+# Copied from https://github.com/Lattice-Automation/seqfold/blob/master/seqfold/fold.py with modifications
 
 import math
 from .types import Energies

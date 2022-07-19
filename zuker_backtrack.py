@@ -7,6 +7,8 @@ from seqfold.rna import RNA_ENERGIES
 
 ThingToRecurseOn = list[tuple[str, int, int]]
 E = tuple[str, tuple[int, int], list[ThingToRecurseOn]]
+
+# set precision of decimal.Decimal class
 getcontext().prec = 2
 
 class Entry:

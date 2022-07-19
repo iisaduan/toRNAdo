@@ -1,11 +1,5 @@
 from distance_vector import V
-
-rna_bases = ['A', 'U', 'C', 'G']
-matchings_pairs = [('A', 'U'), ('U', 'A'), ('C', 'G'), ('G', 'C')]
-def is_base_pair(b1, b2):
-    if b1 not in rna_bases or b2 not in rna_bases:
-        raise ValueError("Input is not an RNA string")
-    return (b1, b2) in matchings_pairs
+from utils import is_base_pair
 
 def nussinov_dp(rna: str) -> tuple[int, list[list[int]]]:
     """

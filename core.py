@@ -4,7 +4,8 @@ from zuker_distance import DistanceSolver
 from test_zuker_backtrack import gen_random_fold
 from nussinov import *
 
-def run_Zuker_functions(rna, folding=None):
+
+def run_Zuker_functions(rna: str, folding:list = None):
     print("-----Running Zuker algorithm-----")
     # run Zuker algorithm to get optimal folds
     solver = Solver(rna)
@@ -29,7 +30,7 @@ def run_Zuker_functions(rna, folding=None):
     print()
 
 
-def run_Nussinov_functions(rna, folding=None):
+def run_Nussinov_functions(rna: str, folding:list = None):
     print("-----Running Nussinov algorithm-----")
     # run Nussinov algorithm to get optimal folds
     opt_val, opt_solutions = nussinov_dp(rna)
@@ -48,6 +49,6 @@ def run_Nussinov_functions(rna, folding=None):
 
 
 if __name__ == '__main__':
-    rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACGAACUUUAAAAUCUGUGUGGCUGUCACUCGGCUGCAUGCUUAGUGCACUCACGCAGUAUAAUUA"
+    rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACG"
     run_Nussinov_functions(rna)
     run_Zuker_functions(rna)

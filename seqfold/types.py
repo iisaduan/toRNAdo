@@ -1,3 +1,5 @@
+# Copied from https://github.com/Lattice-Automation/seqfold/blob/master/seqfold/types.py
+
 """Types shared between dna.py and rna.py
 """
 from typing import Dict, Optional, Tuple
