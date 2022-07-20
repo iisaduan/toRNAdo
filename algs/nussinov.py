@@ -1,5 +1,5 @@
-from distance_vector import V
-from utils import is_base_pair
+from algs.distance_vector import V
+from algs.utils import is_base_pair
 
 def nussinov_dp(rna: str) -> tuple[int, list[list[int]]]:
     """
@@ -77,11 +77,13 @@ def construct_one_opt_solution_helper(start, end, opt_solutions, solution):
             construct_one_opt_solution_helper(start+1, pair_index-1, opt_solutions, solution)
             construct_one_opt_solution_helper(pair_index+1, end, opt_solutions, solution)
 
-def construct_one_opt_solution(rna, opt_solutions=None):
+def construct_one_opt_solution(rna, opt_solutions):
+    """
+    opt_solutions: breadcrumbs for either the Nussinov DP algorithm or the Max distance algorithm
+    Returns a folding from the set of optimal solutions
+    """
     N = len(rna)
     constructed_solution = [i for i in range(N)]
-    if opt_solutions is None:
-        _, opt_solutions = nussinov_dp(rna)
     construct_one_opt_solution_helper(0, N-1, opt_solutions, constructed_solution)
     return constructed_solution
 
@@ -133,18 +135,24 @@ def max_distance_dp(folding, opt_solutions):
                     current_choice = ("L", start)
                 elif choice[0] == "M":
                     # get the basepair matching in the optimal choice
-                    _, opt_pair_index = choice[1]    
+                    _, opt_pair_index = choice[1]
+
                     current_distance = dp[start+1][opt_pair_index-1] \
                                         + dp[opt_pair_index+1][end] \
-                                        + 2 * int(pair_index != opt_pair_index) \
-                                        - (1 if not pair_in_range else 0) \
                                         + matched_pairs_counts[start+1][end] \
                                         - matched_pairs_counts[start+1][opt_pair_index-1] \
                                         - matched_pairs_counts[opt_pair_index+1][end]
+
+                    if opt_pair_index != pair_index:
+                        if pair_in_range:
+                            current_distance += 2
+                        else:
+                            current_distance += 1
+
                     current_choice = ("M", (start, opt_pair_index))
                 if current_distance > max_distance:
                     max_distance = current_distance
-                    max_distance_choices = list(current_choice)
+                    max_distance_choices = [current_choice]
                 elif current_distance == max_distance:
                     max_distance_choices.append(current_choice)
 

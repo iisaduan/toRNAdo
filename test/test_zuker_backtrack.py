@@ -1,11 +1,11 @@
 from functools import reduce
 from itertools import product
 
-from zuker_backtrack import *
+from algs.zuker_backtrack import *
 import random
 
-import zuker
-from zuker_distance import DistanceSolver
+from algs.zuker_distance import DistanceSolver
+import test.zuker  as zuker
 
 def test_default_energy_functions():
     for N in range(20,50):
@@ -365,7 +365,7 @@ def foldcompare(f1, f2):
 if __name__ == '__main__':
     # test_params()
     # test_max_distance()
-    # test_vector()
+    test_vector()
     # test_default_energy_functions()
 
     # rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACGAACUUUAAAAUCUGUGUGGCUGUCACUCGGCUGCAUGCUUAGUGCACUCACGCAGUAUAAUUA"

@@ -1,5 +1,7 @@
 from typing import Callable
 
+from algs.utils import is_base_pair
+
 class Solver:
     def __init__(self, seq: str, 
         m: int,
@@ -48,7 +50,7 @@ class Solver:
                 
 
     def match(self, i: int, j: int):
-        return (self.seq[i], self.seq[j]) in [('A', 'U'), ('U', 'A'), ('C', 'G'), ('G', 'C')]
+        return is_base_pair(self.seq[i], self.seq[j])
 
     def compute_W(self, i: int, j: int):
         # base

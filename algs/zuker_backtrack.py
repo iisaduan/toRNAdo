@@ -1,9 +1,10 @@
 from decimal import Decimal, getcontext
 from typing import Callable
-from seqfold.fold import _hairpin
-from seqfold.fold import _stack
-from seqfold.fold import _internal_loop
-from seqfold.rna import RNA_ENERGIES
+from algs.seqfold.fold import _hairpin
+from algs.seqfold.fold import _stack
+from algs.seqfold.fold import _internal_loop
+from algs.seqfold.rna import RNA_ENERGIES
+from algs.utils import is_base_pair
 
 ThingToRecurseOn = list[tuple[str, int, int]]
 E = tuple[str, tuple[int, int], list[ThingToRecurseOn]]
@@ -83,7 +84,7 @@ class Solver:
                 
 
     def match(self, i: int, j: int):
-        return (self.seq[i], self.seq[j]) in [('A', 'U'), ('U', 'A'), ('C', 'G'), ('G', 'C')]
+        return is_base_pair(self.seq[i], self.seq[j])
 
     def compute_W(self, i: int, j: int):
         # base
@@ -216,9 +217,9 @@ if __name__ == '__main__':
     # Example of how to use this solver
     m = 0
     a, b, c = -1, -1, -1
-    eH = lambda i, j: i-j
-    eS = lambda i, j: i-j
-    eL = lambda i, j, i2, j2: 0
+    eH = lambda rna, i, j: i-j
+    eS = lambda rna, i, j: i-j
+    eL = lambda rna, i, j, i2, j2: 0
 
     rna = "ACGU"
     new_solver = Solver(rna, m, a, b, c, eH, eS, eL)

@@ -1,4 +1,4 @@
-from nussinov import *
+from algs.nussinov import *
 
 import random
 

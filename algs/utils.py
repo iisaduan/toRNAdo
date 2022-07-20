@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 
 RNA_BASES = ['A', 'U', 'C', 'G']
 MATCHING_PAIRS = [('A', 'U'), ('U', 'A'), ('C', 'G'), ('G', 'C')]
@@ -45,11 +46,30 @@ def convert_folding_to_DBN(folding: list) -> str:
             dbn += "."
     return dbn
 
+def display_histogram(vec: list, alg: str, plot_file: str):
+    num_bins = len(vec)
+    plt.bar(list(range(num_bins)), list(vec))
+    # Force y-axis to use scientific notation
+    plt.ticklabel_format(style="sci", axis="y", scilimits=(0,0))
+    if alg == 'N': 
+        alg_name = "Nussinov"
+    elif alg == 'Z':
+        alg_name = "Zuker"
+    
+    plt.ylabel(f"Number of Optimal Solutions")
+    plt.xlabel("Distance", fontsize=18)
+    plt.title(f"Distances from the Given Folding", y=1.08, fontsize=18)
+    plt.savefig(plot_file, bbox_inches='tight')
+    plt.clf()
+
+
 if __name__ == '__main__':
     assert convert_DBN_to_folding("ACG", "...") == [0,1,2]
     assert convert_DBN_to_folding("AU", "()") == [1,0]
-    assert convert_DBN_to_folding("ACAUG", "(.())") == [4,1,3,2,0]
+    assert convert_DBN_to_folding("ACAUU", "(.())") == [4,1,3,2,0]
     assert convert_folding_to_DBN([]) == ""
     assert convert_folding_to_DBN([0,1,2]) == "..."
     assert convert_folding_to_DBN([1,0]) == "()"
     assert convert_folding_to_DBN([4,1,3,2,0]) == "(.())"
+    
+    display_histogram([5]*200, 'N', 'plot')

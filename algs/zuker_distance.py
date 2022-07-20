@@ -1,5 +1,5 @@
-from zuker_backtrack import EntryTable
-from distance_vector import V
+from algs.zuker_backtrack import EntryTable
+from algs.distance_vector import V
 
 ThingToRecurseOn = list[tuple[str, int, int]]
 E = tuple[str, tuple[int, int], list[ThingToRecurseOn]]
