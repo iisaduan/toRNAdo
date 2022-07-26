@@ -51,7 +51,7 @@ if __name__ == '__main__':
         help="select an algorithm to get optimal foldings: N for Nussinov, Z for Zuker")
     parser.add_argument("--dbn_file", type=str, help="filename for dbn string that represents a valid folding")
     parser.add_argument("--d", action="store_true", help="display a folding of max distance from the given folding")
-    parser.add_argument("--h", action="store_true", help="create the histogram for the distance vector")
+    parser.add_argument("--histogram", action="store_true", help="create the histogram for the distance vector")
     parser.add_argument("--f", type=str, help="filename for storing the histogram plot")
     args = parser.parse_args()
     get_distance_statistics(args.rna_file, args.dbn_file, args.alg, args.d, args.h, args.f)

@@ -46,7 +46,7 @@ def run_Nussinov_functions(rna: str, folding: list = None, d: bool = False,\
     print("-----Running Nussinov algorithm-----")
     # run Nussinov algorithm to get optimal folds
     opt_val, opt_solutions = nussinov_dp(rna)
-    print("The maximum number of folds is: ", opt_val)
+    print("The maximum number of matched pairs is: ", opt_val)
 
     # choose a folding to compare against
     afold = folding if folding is not None else construct_one_opt_solution(rna, opt_solutions)
