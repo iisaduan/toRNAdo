@@ -56,7 +56,7 @@ def display_histogram(vec: list, alg: str, plot_file: str):
     elif alg == 'Z':
         alg_name = "Zuker"
     
-    plt.ylabel(f"Number of Optimal Solutions")
+    plt.ylabel(f"Number of {alg_name}-Optimal Solutions")
     plt.xlabel("Distance", fontsize=18)
     plt.title(f"Distances from the Given Folding", y=1.08, fontsize=18)
     plt.savefig(plot_file, bbox_inches='tight')
