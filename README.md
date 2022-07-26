@@ -18,7 +18,8 @@ To run testing files:
 To run examples:
 - Create a new Conda environment: `conda create -n newenv python=3.9`
 - Activate Conda environment: `conda activate newenv`
-- Run an example using the Command Line Tool: in project root directory, run `python -m tornado rna_string.txt --dbn_file dbn_string.txt Z --d --h --f newplot`
+- Install matplotlib for drawing distance distributions: `conda install matplotlib`
+- Run an example using the Command Line Tool: in project root directory, run `python -m tornado rna_string.txt --dbn_file dbn_string.txt Z --d --histogram --f newplot`
 
 To visualize RNA foldings:
 - VARNA is an applet that allows you to visualize RNA secondary structure from dot-bracket-notation strings: https://varna.lri.fr/index.php?lang=en&page=downloads&css=varna
