@@ -169,7 +169,12 @@ class DistanceSolver:
     
     def solve(self):
         N = len(self.seq)
-        return self.maxdist_W[0][N-1].val, self.vec_W[0][N-1].v
+        max_distance, vec = None, None
+        if self.maxdist_W[0][N-1]:
+            max_distance = self.maxdist_W[0][N-1].val
+        if self.vec_W[0][N-1]:
+            vec = self.vec_W[0][N-1].v
+        return max_distance, vec
     
     def get_one_max_dist_solution_h(self, i, j, table, solution):
         if j <= i:

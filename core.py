@@ -6,12 +6,12 @@ from algs.nussinov import *
 
 PLOT_FILENAME = "plot"
 
-def run_Zuker_functions(rna: str, folding: list = None, d: bool = False,\
-    h: bool = False, plot_file: str = PLOT_FILENAME):
+def run_Zuker_functions(rna: str, folding: list = None, internal_loop_size: int = None,\
+    d: bool = False, h: bool = False, plot_file: str = PLOT_FILENAME):
 
-    print("-----Running Zuker algorithm-----")
+    print("-----Running Zuker's algorithm-----")
     # run Zuker algorithm to get optimal folds
-    solver = Solver(rna)
+    solver = Solver(seq = rna, internal_loop_size = internal_loop_size)
     solver.fill_table()
     min_energy = solver.solve()
     print("The minimum energy is: ", min_energy)
@@ -51,7 +51,7 @@ def run_Zuker_functions(rna: str, folding: list = None, d: bool = False,\
 
 def run_Nussinov_functions(rna: str, folding: list = None, d: bool = False,\
     h: bool = False, plot_file: str = PLOT_FILENAME):
-    print("-----Running Nussinov algorithm-----")
+    print("-----Running Nussinov's algorithm-----")
     # run Nussinov algorithm to get optimal folds
     opt_val, opt_solutions = nussinov_dp(rna)
     print("The maximum number of matched pairs is: ", opt_val)
@@ -87,4 +87,5 @@ def run_Nussinov_functions(rna: str, folding: list = None, d: bool = False,\
 if __name__ == '__main__':
     rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACGCUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACG"
     run_Nussinov_functions(rna, d=True, h=True, plot_file="plot_Nussinov")
-    run_Zuker_functions(rna, d=True, h=True, plot_file="plot_Zuker")
+    run_Zuker_functions(rna, d=True, h=True, plot_file="plot_Zuker", internal_loop_size=None)
+    run_Zuker_functions(rna, d=True, h=True, plot_file="plot_Zuker_30", internal_loop_size=30)

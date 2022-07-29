@@ -12,7 +12,8 @@ def check_rna(rna):
         if c not in RNA_BASES:
             raise ValueError("Input RNA string is not valid")
 
-def get_distance_statistics(rna_file: str, dbn_file: str, alg: str, d: bool, h: bool, plot_file: str):
+def get_distance_statistics(rna_file: str, dbn_file: str, alg: str, internal_loop_size: int, \
+    d: bool, h: bool, plot_file: str):
     try:
         # Check the validity of inputs
         if not rna_file:
@@ -40,7 +41,7 @@ def get_distance_statistics(rna_file: str, dbn_file: str, alg: str, d: bool, h: 
         if alg == 'N':
             run_Nussinov_functions(rna, folding, d, h, plot_file)
         if alg == "Z":
-            run_Zuker_functions(rna, folding, d, h, plot_file)
+            run_Zuker_functions(rna, folding, internal_loop_size, d, h, plot_file)
         return
 
 
@@ -49,9 +50,10 @@ if __name__ == '__main__':
     parser.add_argument("rna_file", type=str, help="filename for RNA string")
     parser.add_argument("alg", type=str, choices=['N', 'Z'], \
         help="select an algorithm to get optimal foldings: N for Nussinov, Z for Zuker")
+    parser.add_argument("--internal_loop_size", type=int, help="bound the maximum size for an interior loop in Zuker's algorithm for speedup")
     parser.add_argument("--dbn_file", type=str, help="filename for dbn string that represents a valid folding")
     parser.add_argument("--d", action="store_true", help="display a folding of max distance from the given folding")
     parser.add_argument("--histogram", action="store_true", help="create the histogram for the distance vector")
     parser.add_argument("--f", type=str, help="filename for storing the histogram plot")
     args = parser.parse_args()
-    get_distance_statistics(args.rna_file, args.dbn_file, args.alg, args.d, args.histogram, args.f)
+    get_distance_statistics(args.rna_file, args.dbn_file, args.alg, args.internal_loop_size, args.d, args.histogram, args.f)

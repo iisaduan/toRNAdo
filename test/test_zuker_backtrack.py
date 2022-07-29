@@ -12,7 +12,7 @@ def test_default_energy_functions():
         for _ in range(1):
             rna = generate_rna(N)
             # run Zuker algorithm to get optimal solutions
-            solver = Solver(rna)
+            solver = Solver(seq=rna)
             solver.fill_table()
             min_energy = solver.solve()
             print("Min energy is: ", min_energy)
@@ -46,44 +46,48 @@ def test_max_distance():
         eH = lambda s, i, j: vals[4]
         eS = lambda s, i, j: vals[5]
         eL = lambda s, i, j, i2, j2: vals[6]
-        for N in range(1,10):
-            for _ in range(2):
-                rna = generate_rna(N)
-                solver = Solver(rna, m, a, b, c, eH, eS, eL)
-                solver.fill_table()
-                optimal_folds = backtrack(solver)
+        # try different values for bounding internal loop size. None means no bound
+        L = list(range(0, 10))
+        L.append(None)
+        for bound in L:
+            for N in range(1,10):
+                for _ in range(2):
+                    rna = generate_rna(N)
+                    solver = Solver(rna, m, a, b, c, eH, eS, eL, bound)
+                    solver.fill_table()
+                    optimal_folds = backtrack(solver)
 
-                # a random fold to compare against
-                afold = gen_random_fold(rna)
+                    # a random fold to compare against
+                    afold = gen_random_fold(rna)
 
-                max_distance = len(distancevector(afold, optimal_folds)) - 1
+                    max_distance = len(distancevector(afold, optimal_folds)) - 1
 
-                # result from solver
-                distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
-                                        solver.WM, solver.WM2)
-                distance_solver.fill_distance_table()
-                max_distance_dp = distance_solver.solve()[0]  
-                distance_solver.fill_vector_table()
-                vector_dp = distance_solver.solve()[1] 
-                if max_distance != max_distance_dp:
-                    max_distance_solution = distance_solver.get_one_max_dist_solution()
-                    print("Given folding is: ", afold)
-                    print("Ouputed farthest solution: ", max_distance_solution)
-                    print(f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}")
-                    debug2(rna, distance_solver.maxdist_W)
-                    debug2(rna, distance_solver.maxdist_V)
-                    debug2(rna, distance_solver.maxdist_WM2)
-                    debug2(rna, distance_solver.maxdist_WM)
-                assert max_distance == max_distance_dp, \
-                f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}"
-                count += 1
-                if count % 1000 == 0:
-                    print('.', end='', flush=True)
+                    # result from solver
+                    distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
+                                            solver.WM, solver.WM2)
+                    distance_solver.fill_distance_table()
+                    max_distance_dp = distance_solver.solve()[0]  
+                    distance_solver.fill_vector_table()
+                    vector_dp = distance_solver.solve()[1] 
+                    if max_distance != max_distance_dp:
+                        max_distance_solution = distance_solver.get_one_max_dist_solution()
+                        print("Given folding is: ", afold)
+                        print("Ouputed farthest solution: ", max_distance_solution)
+                        print(f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}")
+                        debug2(rna, distance_solver.maxdist_W)
+                        debug2(rna, distance_solver.maxdist_V)
+                        debug2(rna, distance_solver.maxdist_WM2)
+                        debug2(rna, distance_solver.maxdist_WM)
+                    assert max_distance == max_distance_dp, \
+                    f"Max distance does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={max_distance} got={max_distance_dp}"
+                    count += 1
+                    if count % 1000 == 0:
+                        print('.', end='', flush=True)
     print()
     print("All tests passed!")
 
 def test_vector():
-    print (". = 1000 tests")
+    print (". = 100 tests")
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
         m, a, b, c = vals[:4]
@@ -91,32 +95,36 @@ def test_vector():
         eH = lambda s, i, j: vals[4]
         eS = lambda s, i, j: vals[5]
         eL = lambda s, i, j, i2, j2: vals[6]
-        for N in range(10, 30):
-            for _ in range(2):
-                rna = generate_rna(N)
-                solver = Solver(rna, m, a, b, c, eH, eS, eL)
-                solver.fill_table()
-                optimal_folds = backtrack(solver)
+        # try different values for bounding internal loop size. None means no bound
+        L = list(range(0, 10))
+        L.append(None)
+        for bound in L:
+            for N in range(10, 30):
+                for _ in range(2):
+                    rna = generate_rna(N)
+                    solver = Solver(rna, m, a, b, c, eH, eS, eL, bound)
+                    solver.fill_table()
+                    optimal_folds = backtrack(solver)
 
-                # a random fold to compare against
-                afold = gen_random_fold(rna)
+                    # a random fold to compare against
+                    afold = gen_random_fold(rna)
 
-                vector = distancevector(afold, optimal_folds)
+                    vector = distancevector(afold, optimal_folds)
 
-                distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
-                                            solver.WM, solver.WM2)
-                distance_solver.fill_vector_table()
-                vector_dp = distance_solver.solve()[1]
+                    distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
+                                                solver.WM, solver.WM2)
+                    distance_solver.fill_vector_table()
+                    vector_dp = distance_solver.solve()[1]
 
-                assert vector == vector_dp, \
-                f"Vector does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={vector} got={vector_dp}"
-                num_folds_b = len(optimal_folds)
-                num_folds_dp = reduce((lambda x, y: x + y), vector_dp)
-                assert num_folds_b == num_folds_dp
+                    assert vector == vector_dp, \
+                    f"Vector does not match for m={m} a={a} b={b} c={c} eH={vals[4]} eS={vals[5]} eL={vals[6]}, rna={rna} afold={afold} | expected={vector} got={vector_dp}"
+                    num_folds_b = len(optimal_folds)
+                    num_folds_dp = reduce((lambda x, y: x + y), vector_dp)
+                    assert num_folds_b == num_folds_dp
 
-                count += 1
-                if count % 1000 == 0:
-                    print('.', end='', flush=True)
+                    count += 1
+                    if count % 100 == 0:
+                        print('.', end='', flush=True)
 
 def gen_random_fold_h(rna: str, i: int, j: int, fold: list[int]):
     if i == j: return
@@ -231,6 +239,7 @@ def get_table(solver, tablename):
     if tablename == 'WM':
         return solver.WM
 
+# test backtrack generates unique solutions
 def test_backtrack():
     print (". = 1000 tests")
     count = 0
@@ -240,18 +249,22 @@ def test_backtrack():
         eH = lambda s, i, j: vals[4]
         eS = lambda s, i, j: vals[5]
         eL = lambda s, i, j, i2, j2: vals[6]
-        for _ in range(2):
-            rna = generate_rna(9)
-            solver = Solver(rna, m, a, b, c, eH, eS, eL)
-            solver.fill_table()
-            backtrack(solver)
-            count += 1
-            if count % 1000 == 0:
-                print('.', end='', flush=True)
+        # try different values for bounding internal loop size. None means no bound
+        L = list(range(0, 10))
+        L.append(None)
+        for bound in L:
+            for _ in range(2):
+                rna = generate_rna(9)
+                solver = Solver(seq=rna, m=m, a=a, b=b, c=c, eH=eH, eS=eS, eL=eL, internal_loop_size=bound)
+                solver.fill_table()
+                backtrack(solver)
+                count += 1
+                if count % 1000 == 0:
+                    print('.', end='', flush=True)
     print()
     print("All tests passed!")
 
-# try all parameters
+# test Zuker for different parameters by comparing DP and recursive algorithm
 def test_params():
     print (". = 1000 tests")
     count = 0
@@ -263,7 +276,7 @@ def test_params():
         eL = lambda s, i, j, i2, j2: vals[6]
         for _ in range(3):
             rna = generate_rna(5)
-            dpsolver = Solver(rna, m, a, b, c, eH, eS, eL)
+            dpsolver = Solver(seq=rna, m=m, a=a, b=b, c=c, eH=eH, eS=eS, eL=eL)
             dpsolver.fill_table()
             bfsolver = zuker.Solver2(rna, m, a, b, c, eH, eS, eL)
             for i in range(len(rna)):
@@ -276,7 +289,7 @@ def test_params():
                         if count % 1000 == 0:
                             print('.', end='', flush=True)
                     else:
-                        debug(dpsolver, bfsolver)
+                        debug(rna, dpsolver, bfsolver)
                         raise AssertionError("values not equal")             
     print()
     print(f"All tests {count} passed")
@@ -363,22 +376,10 @@ def foldcompare(f1, f2):
     return count
 
 if __name__ == '__main__':
+    # test_backtrack()
     # test_params()
     # test_max_distance()
-    test_vector()
+    # test_vector()
     # test_default_energy_functions()
 
-    # rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACGAACUUUAAAAUCUGUGUGGCUGUCACUCGGCUGCAUGCUUAGUGCACUCACGCAGUAUAAUUA"
-    # print("-----Running Zuker algorithm-----")
-    # # run Zuker algorithm to get optimal folds
-    # solver = Solver(rna)
-    # solver.fill_table()
-    # min_energy = solver.solve()
-    # print("The minimum energy is: ", min_energy)
-
-    # for i in range(len(rna)):
-    #     for j in range(len(rna)):
-    #         if not j - i >= -1:
-    #             continue
-    #         print(solver.W[i][j].val, end=" ", flush=True)
     pass

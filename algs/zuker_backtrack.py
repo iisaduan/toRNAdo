@@ -34,16 +34,18 @@ class Entry:
 EntryTable = list[list[Entry]]
 
 class Solver:
-    def __init__(self, seq: str, 
+    def __init__(self, seq: str,
         m: int = None,
         a: float = None,
         b: float = None,
         c: float = None,
         eH: Callable[[str, int, int], float] = None,
         eS: Callable[[str, int, int], float] = None,
-        eL: Callable[[str, int, int, int, int], float] = None
+        eL: Callable[[str, int, int, int, int], float] = None,
+        internal_loop_size: int = None,
     ):
         self.seq = seq
+        self.internal_loop_size = internal_loop_size
         self.m = m if m is not None else 4 # minimum seperation for a pair
         self.a = a if a is not None else Decimal(RNA_ENERGIES.MULTIBRANCH[0])
         self.b = b if b is not None else Decimal(RNA_ENERGIES.MULTIBRANCH[1])
@@ -120,9 +122,17 @@ class Solver:
             breadcrumb = ('S', (i, j), [('V', i+1, j-1)])
             entry.update(r2, breadcrumb)
         # Case 3: Internal loop
-        # TODO: bottle neck, maybe use heuristic to limit interior loop size
+        # bottle neck, if internal loop size is specified,
+        # we use it to bound the loop size for speedup
         for i2 in range(i+1, j):
-            for j2 in range(i2+1, j):
+            # determine the range for j2 of the internal loop (i, j, i_2, j_2)
+            # if internal loop size is unbounded, we only require j_2 < j
+            end = j
+            if self.internal_loop_size:
+                end = i2+self.internal_loop_size
+            for j2 in range(i2+1, end):
+                if j2 > j-1:
+                    continue
                 if i2 == i+1 and j2 == j-1:
                     # stacking loop has already been considered in Case 2
                     continue
