@@ -17,7 +17,15 @@ def run_Zuker_functions(rna: str, folding: list = None, d: bool = False,\
     print("The minimum energy is: ", min_energy)
 
     # choose a folding to compare against
-    afold = folding if folding is not None else solver.get_one_solution()
+    afold = None
+    folding_given = False
+    if folding:
+        # use the given folding
+        afold = folding
+        folding_given = True
+    else:
+        # select an arbitrary folding
+        afold = solver.get_one_solution()
 
     # run distance solver to get max distance and vector
     distance_solver = DistanceSolver(rna, afold, solver.W, solver.V,
@@ -37,7 +45,7 @@ def run_Zuker_functions(rna: str, folding: list = None, d: bool = False,\
         print(convert_folding_to_DBN(max_distance_fold))
     if h:
         # display the histogram for the distance vector
-        display_histogram(distance_vector, 'Z', plot_file)
+        display_histogram(distance_vector, 'Z', plot_file, folding_given)
     print()
 
 
@@ -49,7 +57,15 @@ def run_Nussinov_functions(rna: str, folding: list = None, d: bool = False,\
     print("The maximum number of matched pairs is: ", opt_val)
 
     # choose a folding to compare against
-    afold = folding if folding is not None else construct_one_opt_solution(rna, opt_solutions)
+    afold = None
+    folding_given = False
+    if folding:
+        # use the given folding
+        afold = folding
+        folding_given = True
+    else:
+        # select an arbitrary folding
+        afold = construct_one_opt_solution(rna, opt_solutions)
 
     max_distance, max_distance_solutions = max_distance_dp(afold, opt_solutions)
     distance_vector = max_distance_vec(afold, opt_solutions).v
@@ -64,11 +80,11 @@ def run_Nussinov_functions(rna: str, folding: list = None, d: bool = False,\
         print(convert_folding_to_DBN(max_distance_fold))
     if h:
         # display the histogram for the distance vector
-        display_histogram(distance_vector, 'N', plot_file)
+        display_histogram(distance_vector, 'N', plot_file, folding_given)
     print()
 
 
 if __name__ == '__main__':
-    rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACG"
-    run_Nussinov_functions(rna)
-    run_Zuker_functions(rna)
+    rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACGCUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACG"
+    run_Nussinov_functions(rna, d=True, h=True, plot_file="plot_Nussinov")
+    run_Zuker_functions(rna, d=True, h=True, plot_file="plot_Zuker")

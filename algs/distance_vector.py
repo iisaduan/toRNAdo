@@ -42,7 +42,7 @@ class V:
     
     def __xor__(self, other: 'V'):
         """
-        Vector coalesce
+        Vector convolution
         V([1,2]) ^ V([2,3]) == V([2,7,6])
         """
         vec = V()

@@ -2,6 +2,8 @@ from typing import Callable
 
 from algs.utils import is_base_pair
 
+"""This is a file only used for testing purposes"""
+
 class Solver:
     def __init__(self, seq: str, 
         m: int,

@@ -46,7 +46,7 @@ def convert_folding_to_DBN(folding: list) -> str:
             dbn += "."
     return dbn
 
-def display_histogram(vec: list, alg: str, plot_file: str):
+def display_histogram(vec: list, alg: str, plot_file: str, folding_given: bool):
     num_bins = len(vec)
     plt.bar(list(range(num_bins)), list(vec))
     # Force y-axis to use scientific notation
@@ -57,8 +57,11 @@ def display_histogram(vec: list, alg: str, plot_file: str):
         alg_name = "Zuker"
     
     plt.ylabel(f"Number of {alg_name}-Optimal Solutions")
-    plt.xlabel("Distance", fontsize=18)
-    plt.title(f"Distances from the Given Folding", y=1.08, fontsize=18)
+    plt.xlabel("Distance")
+    if folding_given:
+        plt.title(f"Distances from the Given Folding", y=1.08, fontsize=18)
+    else:
+        plt.title(f"Distances from a Selected Random Folding", y=1.08, fontsize=18)
     plt.savefig(plot_file, bbox_inches='tight')
     plt.clf()
 
