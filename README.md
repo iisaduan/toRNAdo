@@ -1,25 +1,43 @@
-# rna-diameter
+# toRNAdo
 
+This repository provides functionalities for measuring the distance of a given RNA folding to the set of Nussinov-optimal or Zuker-optimal foldings of the RNA string. Specifically, it provides a command line tool that allows the user to specify an RNA string, a folding for that RNA string (in .dbn format), and an algorithm for predicting the optimal RNA foldings (either Nussinov or Zuker's algorithm), and then it outputs the maximum distance between the given folding and any optimal folding as well as a distance vector that tells the number of optimal foldings there are that are some distance away from the given folding. The following section explains how to use the command line tool in more detail.
 
-
-Core Algorithms files are: 
-- `zuker_backtrack.py` contains code for Zuker DP algorithm that records breadcrumbs
-- `zuker_distance.py` contains code for computing max distance and distance vector for solutions yielded by Zuker's algorithm
-- `nussinov.py` contains code for Nussinov DP algorithm and also code for computing max distance 
-and distance vector for solutions yielded by Nussinov's algorithm.
-
-Testing files are:
-- `test_zuker_backtrack.py`
-- `test_nussinov.py`
-
-To run testing files:
-- Use `python -m test.test_zuker_backtrack`
-
-To run examples:
-- Create a new Conda environment: `conda create -n newenv python=3.9`
+## Set Up
+It is advisable for the user to set up a virtual environment to install the correct packages. We provide instructions for setting up a virtual environment using [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html):
+- Create a new Conda environment with python version: `conda create -n newenv python=3.9`
 - Activate Conda environment: `conda activate newenv`
-- Install matplotlib for drawing distance distributions: `conda install matplotlib`
-- Run an example using the Command Line Tool: in project root directory, run `python -m tornado rna_string.txt --dbn_file dbn_string.txt Z --d --histogram --f newplot`
+- Install matplotlib for drawing the distance vector as a histogram: `conda install matplotlib`
 
-To visualize RNA foldings:
-- VARNA is an applet that allows you to visualize RNA secondary structure from dot-bracket-notation strings: https://varna.lri.fr/index.php?lang=en&page=downloads&css=varna
+## Command Line Tool
+
+To display help messages, run:
+```bash
+python tornado.py --help
+```
+The required arguments are:
+- `rna_file`: filename for RNA string
+- `{N,Z}`: select an algorithm to get optimal foldings: N for Nussinov, Z for Zuker
+
+The optional arguments are:
+- `-s <INTERNAL_LOOP_SIZE>`, `--internal_loop_size <INTERNAL_LOOP_SIZE>`: Specify a positive integer that bounds the maximum size of an internal loop in Zuker's algorithm for speeding up the runtime. If unspecified, there is no constraint on the internal loop size.
+- `-dbn <DBN_FILE>`, `--dbn_file <DBN_FILE>`: Specify the filename where the dbn string that represents a valid folding is stored
+- `-d`, `--display_max_distance`: Display a folding of maximum distance from the given folding
+- `-p`, `--plot`: Plot the histogram for the distance vector
+- `-f <PLOT_FILE>`, `--plot_file <PLOT_FILE>`: Specify the filename for storing the histogram plot of the distance vector
+
+For example, if we want to find the maximum distance and distance vector for a given folding stored in `examples/dbn_string.txt` and compare it with all Zuker-optimal solutions for the RNA string contained in `examples/rna_string.txt`, then we run 
+```bash
+python tornado.py examples/rna_string.txt Z -dbn examples/dbn_string.txt -d -p -f examples/plot_Zuker
+```
+Then the plot for the distance vector will be stored in `examples/plot_Zuker.png`
+
+## File Structure
+
+The core algorithms files are located in `algs` folder: 
+- `zuker_backtrack.py` contains code for Zuker DP algorithm.
+- `zuker_distance.py` contains code for computing the maximum distance and distance vector between a given folding and Zuker-optimal foldings.
+- `nussinov.py` contains code for Nussinov DP algorithm and also code for computing the maximum distance and distance vector between a given folding and Nussinov-optimal foldings.
+
+## Visualize RNA foldings
+
+VARNA is an applet that allows you to visualize RNA secondary structure from dot-bracket-notation strings: https://varna.lri.fr/index.php?lang=en&page=downloads&css=varna
