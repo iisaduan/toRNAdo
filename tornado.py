@@ -47,9 +47,9 @@ def get_distance_statistics(rna_file: str, dbn_file: str, alg: str, internal_loo
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("rna_file", type=str, help="filename for RNA string")
     parser.add_argument("alg", type=str, choices=['N', 'Z'], \
         help="select an algorithm to get optimal foldings: N for Nussinov, Z for Zuker")
+    parser.add_argument("rna_file", type=str, help="filename for RNA string")
     parser.add_argument("-s","--internal_loop_size", type=int, help="bound the maximum size for an internal loop in Zuker's algorithm for speedup")
     parser.add_argument("-dbn", "--dbn_file", type=str, help="filename for dbn string that represents a valid folding")
     parser.add_argument("-d", "--display_max_distance", action="store_true", help="display a folding of max distance from the given folding")

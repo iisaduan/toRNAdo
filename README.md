@@ -15,21 +15,24 @@ To display help messages, run:
 python tornado.py --help
 ```
 The required arguments are:
-- `rna_file`: filename for RNA string
+- `rna_file`: filepath for the RNA string
 - `{N,Z}`: select an algorithm to get optimal foldings: N for Nussinov, Z for Zuker
 
 The optional arguments are:
+- `-dbn <DBN_FILE>`, `--dbn_file <DBN_FILE>`: Specify the filepath where the dbn string is stored. The dbn string is the dot-bracket notation that represents the folding we want to compare against.
 - `-s <INTERNAL_LOOP_SIZE>`, `--internal_loop_size <INTERNAL_LOOP_SIZE>`: Specify a positive integer that bounds the maximum size of an internal loop in Zuker's algorithm for speeding up the runtime. If unspecified, there is no constraint on the internal loop size.
-- `-dbn <DBN_FILE>`, `--dbn_file <DBN_FILE>`: Specify the filename where the dbn string that represents a valid folding is stored
 - `-d`, `--display_max_distance`: Display a folding of maximum distance from the given folding
 - `-p`, `--plot`: Plot the histogram for the distance vector
-- `-f <PLOT_FILE>`, `--plot_file <PLOT_FILE>`: Specify the filename for storing the histogram plot of the distance vector
+- `-f <PLOT_FILE>`, `--plot_file <PLOT_FILE>`: Specify the filepath for storing the histogram plot of the distance vector
 
 For example, if we want to find the maximum distance and distance vector for a given folding stored in `examples/dbn_string.txt` and compare it with all Zuker-optimal solutions for the RNA string contained in `examples/rna_string.txt`, then we run 
 ```bash
-python tornado.py examples/rna_string.txt Z -dbn examples/dbn_string.txt -d -p -f examples/plot_Zuker
+python tornado.py Z examples/rna_string.txt -dbn examples/dbn_string.txt
 ```
-Then the plot for the distance vector will be stored in `examples/plot_Zuker.png`
+If we want to display a folding of maximum distance in .dbn format and also store a plot for the distance vector in `examples/plot_Zuker.png`, then we run
+```bash
+python tornado.py Z examples/rna_string.txt -dbn examples/dbn_string.txt -d -p -f examples/plot_Zuker
+```
 
 ## File Structure
 
