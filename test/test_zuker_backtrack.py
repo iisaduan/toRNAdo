@@ -1,13 +1,14 @@
+"""Test file for Zuker DP algorithm and Zuker max distance and distance vector algorithms"""
+
 from functools import reduce
 from itertools import product
-
 from algs.zuker_backtrack import *
+from algs.zuker_distance import DistanceSolver
+import test.zuker_recursive as zuker_recursive
 import random
 
-from algs.zuker_distance import DistanceSolver
-import test.zuker  as zuker
-
 def test_default_energy_functions():
+    """Test the default parameters and energy functions"""
     for N in range(20,50):
         for _ in range(1):
             rna = generate_rna(N)
@@ -38,6 +39,10 @@ def test_default_energy_functions():
 
 
 def test_max_distance():
+    """
+    Test Zuker max distance algorithm
+    by comparing with brute force algorithm
+    """
     print (". = 1000 tests")
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
@@ -68,7 +73,6 @@ def test_max_distance():
                     distance_solver.fill_distance_table()
                     max_distance_dp = distance_solver.solve()[0]  
                     distance_solver.fill_vector_table()
-                    vector_dp = distance_solver.solve()[1] 
                     if max_distance != max_distance_dp:
                         max_distance_solution = distance_solver.get_one_max_dist_solution()
                         print("Given folding is: ", afold)
@@ -87,6 +91,10 @@ def test_max_distance():
     print("All tests passed!")
 
 def test_vector():
+    """
+    Test Zuker distance vector algorithm
+    by comparing with brute force algorithm.
+    """
     print (". = 100 tests")
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
@@ -158,6 +166,7 @@ def gen_random_fold(rna: str):
 
 matches = {'A': 'U', 'U': 'A', 'C':'G', 'G':'C'}
 def match_of(c):
+    """Return the complementary base"""
     return matches[c]
 
 def backtrack(solver: Solver) -> list[int]:
@@ -230,6 +239,7 @@ def backtrackh(solver: Solver, tablename: str, i: int, j: int, fold: list, fold2
 
 
 def get_table(solver, tablename):
+    """Get the corresponding DP table in the solver of the given name"""
     if tablename == 'W':
         return solver.W
     if tablename == 'V':
@@ -239,8 +249,8 @@ def get_table(solver, tablename):
     if tablename == 'WM':
         return solver.WM
 
-# test backtrack generates unique solutions
 def test_backtrack():
+    """Test backtrack generates unique solutions"""
     print (". = 1000 tests")
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
@@ -264,8 +274,11 @@ def test_backtrack():
     print()
     print("All tests passed!")
 
-# test Zuker for different parameters by comparing DP and recursive algorithm
 def test_params():
+    """
+    Test Zuker DP algorithm for different parameters
+    by comparing DP and recursive algorithm
+    """
     print (". = 1000 tests")
     count = 0
     for vals in product(range(-3, 2, 1), repeat=7):
@@ -278,30 +291,31 @@ def test_params():
             rna = generate_rna(5)
             dpsolver = Solver(seq=rna, m=m, a=a, b=b, c=c, eH=eH, eS=eS, eL=eL)
             dpsolver.fill_table()
-            bfsolver = zuker.Solver2(rna, m, a, b, c, eH, eS, eL)
+            bfsolver = zuker_recursive.RecursiveSolver(rna, m, a, b, c, eH, eS, eL)
             for i in range(len(rna)):
                 for j in range(len(rna)):
                     if not j - i >= -1: continue
                     dpans = dpsolver.W[i][j].val
                     bfans = bfsolver.W(i, j)
-                    if dpans == bfans:
-                        count += 1
-                        if count % 1000 == 0:
-                            print('.', end='', flush=True)
-                    else:
+                    if dpans != bfans:
                         debug(rna, dpsolver, bfsolver)
-                        raise AssertionError("values not equal")             
+                        raise AssertionError("values not equal")   
+            count += 1
+            if count % 1000 == 0:
+                print('.', end='', flush=True)
     print()
     print(f"All tests {count} passed")
 
 def generate_rna(length: int) -> str:
+    """Generates an RNA of given length"""
     s = []
     for _ in range(length):
         c = random.choice(['A', 'U', 'C', 'G'])
         s.append(c)
     return ''.join(s)
 
-def debug2(rna, table, table2=None):
+def debug2(rna: str, table, table2=None):
+    """Compare one table against another"""
     print()
     print(' ' * 10, end='')
     for i in range(len(rna)):
@@ -323,7 +337,11 @@ def debug2(rna, table, table2=None):
             print(f'{s:>10}', end="")
         print()
 
-def debug(rna, solver1: Solver, solver2: zuker.Solver):
+def debug(rna: str, solver1: Solver, solver2: zuker_recursive.RecursiveSolver):
+    """
+    Compare the Zuker DP algorithm against Zuker recursive algorithm by
+    comparing their W entries.
+    """
     print()
     print(' ' * 10, end='')
     for i in range(len(rna)):
@@ -346,6 +364,7 @@ def debug(rna, solver1: Solver, solver2: zuker.Solver):
         print()
 
 def distancevector(fold: list, allfolds: list):
+    """Compute the distance vector throught a brute force algorithm"""
     vector = [0] * len(fold)*2
 
     for other in allfolds:
@@ -359,6 +378,7 @@ def distancevector(fold: list, allfolds: list):
 
 def foldcompare(f1, f2):
     """
+    Compute the distance between two folds.
     ([0, 1], [0, 1]) -> 0
     ([1, 0], [1, 0]) -> 0
     ([1, 0, 2], [2, 1, 0]) -> 2
@@ -381,5 +401,4 @@ if __name__ == '__main__':
     # test_max_distance()
     # test_vector()
     # test_default_energy_functions()
-
     pass

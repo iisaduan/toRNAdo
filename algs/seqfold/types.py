@@ -1,11 +1,10 @@
-# Copied from https://github.com/Lattice-Automation/seqfold/blob/master/seqfold/types.py
+"""Types used by rna.py.
 
-"""Types shared between dna.py and rna.py
+Copied from https://github.com/Lattice-Automation/seqfold/blob/master/seqfold/types.py
+    with modifications
 """
+
 from typing import Dict, Optional, Tuple
-
-
-"""Exported for faster tm/dg lookup"""
 
 Comp = Dict[str, str]
 MultiBranch = Tuple[float, float, float, float]

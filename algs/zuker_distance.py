@@ -1,30 +1,47 @@
-from algs.zuker_backtrack import EntryTable
+"""Implements the Zuker Max Distance and Distance Vector algorithm"""
+
+from algs.zuker_backtrack import Choice, EntryTable
 from algs.distance_vector import V
 
-ThingToRecurseOn = list[tuple[str, int, int]]
-E = tuple[str, tuple[int, int], list[ThingToRecurseOn]]
-
 class DistanceEntry:
+    """An entry in the Zuker Max Distance DP tables
+    """
+
     def __init__(self,
         val: int,
-        eList: list[E] = None
+        eList: list[Choice] = None
     ):
+        """Initialize an entry
+
+        Args:
+            val (int): optimal value for this entry
+            eList (list[Choice], optional): a list of optimal choices that
+                gives the same optimal value for this entry. Defaults to None.
+        """
         if eList is None:
             eList = []
         self.val = val
         self.eList = eList
 
-    def update(self, val: int, e: E = None):
-        # e: tuple['Event', tuple[i,j]/None, list[ThingToRecurseOn]]
-        # ThingToRecurseOn: tuple['TableName', i, j]
+    def update(self, val: int, e: Choice = None):
+        """Update an entry with a new value and the corresponding choice.
+
+        Args:
+            val (int): new value for this entry
+            e (Choice, optional): associated breadcrumb. Defaults to None.
+        """
         if val > self.val:
             self.val = val
             self.eList = [e]
         elif val == self.val and self.val != float('-inf'):
             self.eList.append(e)
+
 DistanceEntryTable = list[list[DistanceEntry]]
 
 class DistanceSolver:
+    """Implements the Max distance and Distance Vector algorithm for Zuker
+    """
+
     def __init__(self,
     seq: str,
     folding: list,
@@ -33,6 +50,16 @@ class DistanceSolver:
     opt_WM: EntryTable,
     opt_WM2: EntryTable
     ):
+        """Initialize the solver.
+
+        Args:
+            seq (str): RNA sequence
+            folding (list): A folding to compare against
+            opt_W (EntryTable): W table from running the Zuker DP algorithm
+            opt_V (EntryTable): V table from running the Zuker DP algorithm
+            opt_WM (EntryTable): WM table from running the Zuker DP algorithm
+            opt_WM2 (EntryTable): WM2 table from running the Zuker DP algorithm
+        """
         self.seq = seq
         self.folding = folding
         # pass in DP tables from running Zuker's algorithm
@@ -56,6 +83,8 @@ class DistanceSolver:
         self.vec_WM2 = [[None for j in range(N)] for i in range(N+1)]
     
     def fill_distance_table(self):
+        """Fill the max distance tables in the order of V, W, WM, WM2
+        """
         N = len(self.seq)
         for i in range(0, N):
             for tablename in ["W", "V", "WM", "WM2"]:
@@ -70,6 +99,8 @@ class DistanceSolver:
                 self.compute_max_distance("WM2", i, j)
     
     def fill_vector_table(self):
+        """Fill the distance vector tables in the order of V, W, WM, WM2
+        """
         N = len(self.seq)
         for i in range(0, N):
             for tablename in ["W", "V", "WM", "WM2"]:
@@ -83,7 +114,15 @@ class DistanceSolver:
                 self.compute_vec("WM", i, j) # relies on V[i][j]
                 self.compute_vec("WM2", i, j)
     
-    def get_opt_table(self, tablename):
+    def get_opt_table(self, tablename: str) -> EntryTable:
+        """Get one of the DP tables from running the Zuker algorithm
+
+        Args:
+            tablename (str): name of the table
+
+        Returns:
+            EntryTable: the table corresponding to that name
+        """
         if tablename == 'W':
             return self.opt_W
         elif tablename == 'V':
@@ -93,7 +132,15 @@ class DistanceSolver:
         elif tablename == 'WM':
             return self.opt_WM
 
-    def get_max_dist_table(self, tablename):
+    def get_max_dist_table(self, tablename: str) -> DistanceEntryTable:
+        """Get one of the the max distance DP tables
+
+        Args:
+            tablename (str): name of the table
+
+        Returns:
+            DistanceEntryTable: max distance DP table of that name
+        """
         if tablename == 'W':
             return self.maxdist_W
         elif tablename == 'V':
@@ -103,7 +150,15 @@ class DistanceSolver:
         elif tablename == 'WM':
             return self.maxdist_WM
     
-    def get_vec_table(self, tablename):
+    def get_vec_table(self, tablename: str) -> list[list]:
+        """Get one of the the distance vector DP tables
+
+        Args:
+            tablename (str): name of the table
+
+        Returns:
+            DistanceEntryTable: distance vector DP table of that name
+        """
         if tablename == 'W':
             return self.vec_W
         elif tablename == 'V':
@@ -114,9 +169,11 @@ class DistanceSolver:
             return self.vec_WM
     
     def count_contained_basepairs(self) -> list:
-        """
-        Return a 2D list dp.
-        dp[i][j] = the number of basepairs in self.folding that are entirely contained in rna[i,j+1]
+        """Count the number of matched pairs in self.folding for any given range
+
+        Returns:
+            list: a 2D array dp, where dp[i][j] = the number of basepairs
+            in self.folding that are entirely contained in rna[i,j+1]
         """
         N = len(self.seq)
         dp = [[0 for j in range(N)] for i in range(N+1)]
@@ -127,7 +184,15 @@ class DistanceSolver:
                 dp[start][end] = dp[start+1][end] + int(is_start_pair_contained)
         return dp
     
-    def compute_max_distance(self, tablename, i, j):
+    def compute_max_distance(self, tablename: str, i: int, j: int):
+        """Compute the entry table[i][j], where table is the max distance DP
+        table corresponding to the tablename.
+
+        Args:
+            tablename (str): name of the table we are computing
+            i (int): row index
+            j (int): column index
+        """
         table = self.get_max_dist_table(tablename)
         opt_table = self.get_opt_table(tablename)
         # base
@@ -167,7 +232,15 @@ class DistanceSolver:
             entry.update(distance, choice)
         table[i][j] = entry
     
-    def solve(self):
+    def solve(self) -> tuple[int, list]:
+        """Return the max distance and distance vector between self.folding and
+        the set of Zuker-optimal foldings.
+
+        Returns:
+            tuple[int, list]: a tuple (max_distance, vec) corresponding to the
+            max distance and distance vector between self.folding and the
+            set of Zuker-optimal foldings respectively.
+        """
         N = len(self.seq)
         max_distance, vec = None, None
         if self.maxdist_W[0][N-1]:
@@ -176,7 +249,15 @@ class DistanceSolver:
             vec = self.vec_W[0][N-1].v
         return max_distance, vec
     
-    def get_one_max_dist_solution_h(self, i, j, table, solution):
+    def get_one_max_dist_solution_h(self, i: int, j: int, \
+        table: DistanceEntryTable, solution: list):
+        """Helper function for getting an arbitrary max distance solution
+
+        Args:
+            i (int): start index
+            j (int): end index
+            solution (list): stores the resulting solution
+        """
         if j <= i:
             return
         # choose the first solution
@@ -189,14 +270,26 @@ class DistanceSolver:
             self.get_one_max_dist_solution_h(i, j, \
                 self.get_max_dist_table(tablename), solution)
     
-    def get_one_max_dist_solution(self):
-        """get an arbitrary solution"""
+    def get_one_max_dist_solution(self) -> list:
+        """Get an arbitrary max distance solution
+
+        Returns:
+            list: the resulting solution
+        """
         N = len(self.seq)
         solution = [i for i in range(N)]
         self.get_one_max_dist_solution_h(0, N-1, self.maxdist_W, solution)
         return solution
     
-    def compute_vec(self, tablename, i, j):
+    def compute_vec(self, tablename: str, i: int, j: int):
+        """Compute the entry table[i][j], where table is the distance vector DP
+        table corresponding to the tablename.
+
+        Args:
+            tablename (str): name of the table we are computing
+            i (int): row index
+            j (int): column index
+        """
         table = self.get_vec_table(tablename)
         opt_table = self.get_opt_table(tablename)
         # base

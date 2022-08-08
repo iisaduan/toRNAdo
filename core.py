@@ -1,3 +1,5 @@
+"Provide functionalities for the command line tool"
+
 from functools import reduce
 from algs.utils import convert_folding_to_DBN, display_histogram
 from algs.zuker_backtrack import *
@@ -8,6 +10,18 @@ PLOT_FILENAME = "plot"
 
 def run_Zuker_functions(rna: str, folding: list = None, internal_loop_size: int = None,\
     display: bool = False, plot: bool = False, plot_file: str = PLOT_FILENAME):
+    """Compute the distance profile for a folding with respect to Zuker-Optimal
+    solutions/foldings.
+
+    Args:
+        rna (str): an RNA sequence
+        folding (list, optional): a folding to compare against. Defaults to None.
+        internal_loop_size (int, optional): maximum size for an internal loop. Defaults to None.
+        display (bool, optional): whether to display in command line output
+            a folding of max distance from the given folding. Defaults to False.
+        plot (bool, optional): whether to plot the distance vector. Defaults to False.
+        plot_file (str, optional): the filepath for storing the plot. Defaults to PLOT_FILENAME.
+    """
 
     print("-----Running Zuker's algorithm-----")
     # run Zuker algorithm to get optimal folds
@@ -51,6 +65,17 @@ def run_Zuker_functions(rna: str, folding: list = None, internal_loop_size: int 
 
 def run_Nussinov_functions(rna: str, folding: list = None, display: bool = False,\
     plot: bool = False, plot_file: str = PLOT_FILENAME):
+    """Compute the distance profile for a folding with respect to Nussinov-Optimal
+    solutions/foldings.
+
+    Args:
+        rna (str): an RNA sequence
+        folding (list, optional): a folding to compare against. Defaults to None.
+        display (bool, optional): whether to display in command line output
+            a folding of max distance from the given folding. Defaults to False.
+        plot (bool, optional): whether to plot the distance vector. Defaults to False.
+        plot_file (str, optional): the filepath for storing the plot. Defaults to PLOT_FILENAME.
+    """
     print("-----Running Nussinov's algorithm-----")
     # run Nussinov algorithm to get optimal folds
     opt_val, opt_solutions = nussinov_dp(rna)
@@ -68,7 +93,7 @@ def run_Nussinov_functions(rna: str, folding: list = None, display: bool = False
         afold = construct_one_opt_solution(rna, opt_solutions)
 
     max_distance, max_distance_solutions = max_distance_dp(afold, opt_solutions)
-    distance_vector = max_distance_vec(afold, opt_solutions).v
+    distance_vector = distance_vec(afold, opt_solutions).v
     print("Max distance is: ", max_distance)
     print("The distance vector is: ", distance_vector)
     num_folds_dp = reduce((lambda x, y: x + y), distance_vector)
@@ -85,7 +110,8 @@ def run_Nussinov_functions(rna: str, folding: list = None, display: bool = False
 
 
 if __name__ == '__main__':
-    rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACGCUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACG"
-    run_Nussinov_functions(rna, display=True, plot=True, plot_file="plot_Nussinov")
-    run_Zuker_functions(rna, display=True, plot=True, plot_file="plot_Zuker", internal_loop_size=None)
-    run_Zuker_functions(rna, display=True, plot=True, plot_file="plot_Zuker_30", internal_loop_size=30)
+    # rna = "CUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACGCUUCCCAGGUAACAAACCAACCAACUUUCGAUCUCUUGUAGAUCUGUUCUCUAAACG"
+    # run_Nussinov_functions(rna, display=True, plot=True, plot_file="plot_Nussinov")
+    # run_Zuker_functions(rna, display=True, plot=True, plot_file="plot_Zuker", internal_loop_size=None)
+    # run_Zuker_functions(rna, display=True, plot=True, plot_file="plot_Zuker_30", internal_loop_size=30)
+    pass

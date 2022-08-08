@@ -1,3 +1,5 @@
+"The command line tool for distance profiling"
+
 import argparse
 from core import run_Nussinov_functions, run_Zuker_functions
 from algs.utils import RNA_BASES, convert_DBN_to_folding
@@ -7,13 +9,44 @@ from algs.utils import RNA_BASES, convert_DBN_to_folding
 ALG_OPTIONS = ['N', 'Z']
 
 
-def check_rna(rna):
+def check_rna(rna: str):
+    """Check if the given RNA file contains valid characters.
+
+    Args:
+        rna (str): a string
+
+    Raises:
+        ValueError: if a character in the string is not an RNA base, then this
+            error is raised.
+    """
     for c in rna:
         if c not in RNA_BASES:
             raise ValueError("Input RNA string is not valid")
 
 def get_distance_statistics(rna_file: str, dbn_file: str, alg: str, internal_loop_size: int, \
     display: bool, plot: bool, plot_file: str):
+    """Provide the distance statistics according to the command line options that
+    the user selects.
+
+    Args:
+        rna_file (str): a filepath that stores the RNA sequence
+        dbn_file (str): a filepath that stores a folding for the RNA sequence
+            in dot-bracket notation
+        alg (str): the algorithm the user chooses for RNA folding
+        internal_loop_size (int): the maximum size for an internal loop in the
+            Zuker algorithm.
+        display (bool): whether to display a folding of max distance from the
+            base folding.
+        plot (bool): whether to plot the histogram for the distance vector
+        plot_file (str): the filepath for storing the histogram plot.
+
+    Raises:
+        ValueError: raised if rna_file is not provided
+        ValueError: raised if RNA sequence is empty
+        ValueError: raised if the provided folding is not a valid folding for
+            the provided RNA sequence
+        ValueError: raised if the choice of algorithm is invalid
+    """
     try:
         # Check the validity of inputs
         if not rna_file:

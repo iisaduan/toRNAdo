@@ -1,3 +1,5 @@
+"""Implements the Zuker DP algorithm"""
+
 from decimal import Decimal, getcontext
 from typing import Callable
 from algs.seqfold.fold import _hairpin
@@ -6,25 +8,41 @@ from algs.seqfold.fold import _internal_loop
 from algs.seqfold.rna import RNA_ENERGIES
 from algs.utils import is_base_pair
 
-ThingToRecurseOn = list[tuple[str, int, int]]
-E = tuple[str, tuple[int, int], list[ThingToRecurseOn]]
+RecursiveCall = tuple[str, int, int]
+Traceback = list[RecursiveCall]
+# Example Choice: ('S', (i, j), [('V', i+1, j-1)])
+# interpreted as: Stacking loop, matches i and j, recurse on V[i+1][j-1]
+Choice = tuple[str, tuple[int, int], Traceback]
 
 # set precision of decimal.Decimal class
 getcontext().prec = 2
 
 class Entry:
+    """An entry in the Zuker algorithm DP tables
+    """
     def __init__(self,
         val: Decimal,
-        eList: list[E] = None
+        eList: list[Choice] = None
     ):
+        """Initialize an entry.
+
+        Args:
+            val (Decimal): optimal value for this entry
+            eList (list[Choice], optional): a list of optimal choices that
+                gives the same optimal value for this entry. Defaults to None.
+        """
         if eList is None:
             eList = []
         self.val = val
         self.eList = eList
 
-    def update(self, val: Decimal, e: E = None):
-        # e: tuple['Event', tuple[i,j]/None, list[ThingToRecurseOn]]
-        # ThingToRecurseOn: tuple['TableName', i, j]
+    def update(self, val: Decimal, e: Choice = None):
+        """Update an entry with a new value and the corresponding choice.
+
+        Args:
+            val (Decimal): new value for this entry
+            e (Choice, optional): associated breadcrumb. Defaults to None.
+        """
         if val < self.val:
             self.val = val
             self.eList = [e]
@@ -34,6 +52,8 @@ class Entry:
 EntryTable = list[list[Entry]]
 
 class Solver:
+    """Implements the Zuker DP algorithm
+    """
     def __init__(self, seq: str,
         m: int = None,
         a: float = None,
@@ -44,9 +64,28 @@ class Solver:
         eL: Callable[[str, int, int, int, int], float] = None,
         internal_loop_size: int = None,
     ):
+        """Initialize the Solver with parameters and functions used
+        in the algorithm and energy calculations for different loops.
+
+        Args:
+            seq (str): RNA sequence
+            m (int, optional): minimum size of a closed loop. For example,
+                a loop (i,j) must satisfy j-i >= m. Defaults to None.
+            a (float, optional): parameter for multiloop energy calculation. Defaults to None.
+            b (float, optional): parameter for multiloop energy calculation. Defaults to None.
+            c (float, optional): parameter for multiloop energy calculation. Defaults to None.
+            eH (Callable[[str, int, int], float], optional): energy function for Hairpin loops. Defaults to None.
+            eS (Callable[[str, int, int], float], optional): energy function for Stacking loops. Defaults to None.
+            eL (Callable[[str, int, int, int, int], float], optional): energy function for Internal loops. Defaults to None.
+            internal_loop_size (int, optional): maximum size of an internal loop.
+                For example, we require an internal loop (i,j,i',j') to satisfy
+                j'-i'+1 <= internal_loop_size. Defaults to None.
+        """
         self.seq = seq
         self.internal_loop_size = internal_loop_size
-        self.m = m if m is not None else 4 # minimum seperation for a pair
+        # if any of the following parameters is None, we import the value from
+        # the seqfold module copied from https://github.com/Lattice-Automation/seqfold.
+        self.m = m if m is not None else 4
         self.a = a if a is not None else Decimal(RNA_ENERGIES.MULTIBRANCH[0])
         self.b = b if b is not None else Decimal(RNA_ENERGIES.MULTIBRANCH[1])
         self.c = c if c is not None else Decimal(RNA_ENERGIES.MULTIBRANCH[2])
@@ -57,7 +96,7 @@ class Solver:
         self.eL = eL if eL is not None else \
             lambda s, i, j, i2, j2: Decimal(_internal_loop(self.seq, i, i2, j, j2, float('37.0'), RNA_ENERGIES))
 
-        # create table
+        # create tables
         N = len(self.seq)
         self.W =   [[Entry(None) for j in range(N)] for i in range(N+1)]
         self.V =   [[Entry(None) for j in range(N)] for i in range(N+1)]
@@ -65,6 +104,8 @@ class Solver:
         self.WM2 = [[Entry(None) for j in range(N)] for i in range(N+1)]      
     
     def fill_table(self):
+        """Fill the tables in the order of V, W, WM, WM2
+        """
         N = len(self.seq)
         for i in range(0, N):
             self.compute_W(i, i)
@@ -85,10 +126,25 @@ class Solver:
                 self.compute_WM2(i, j)
                 
 
-    def match(self, i: int, j: int):
+    def match(self, i: int, j: int) -> bool:
+        """Determine if the bases at index i and j are complementary
+
+        Args:
+            i (int): index into self.seq
+            j (int): another index into self.seq
+
+        Returns:
+            bool: True if the bases at the indices are complementary and False otherwise.
+        """
         return is_base_pair(self.seq[i], self.seq[j])
 
     def compute_W(self, i: int, j: int):
+        """Compute W[i][j].
+
+        Args:
+            i (int): row index
+            j (int): column index
+        """
         # base
         if i == j or i-1 == j:
             self.W[i][j] = Entry(Decimal('0'))
@@ -107,6 +163,12 @@ class Solver:
         self.W[i][j] = entry
     
     def compute_V(self, i: int, j: int):
+        """Compute V[i][j].
+
+        Args:
+            i (int): row index
+            j (int): column index
+        """
         # base
         if j-i < self.m or not self.match(i,j):
             self.V[i][j] = Entry(Decimal('Infinity'))
@@ -129,7 +191,7 @@ class Solver:
             # if internal loop size is unbounded, we only require j_2 < j
             end = j
             if self.internal_loop_size:
-                end = i2+self.internal_loop_size
+                end = i2 + self.internal_loop_size
             for j2 in range(i2+1, end):
                 if j2 > j-1:
                     continue
@@ -137,7 +199,7 @@ class Solver:
                     # stacking loop has already been considered in Case 2
                     continue
                 if self.match(i2, j2):
-                    r3 = self.V[i2][j2].val+ self.eL(self.seq, i, j, i2, j2)
+                    r3 = self.V[i2][j2].val + self.eL(self.seq, i, j, i2, j2)
                     breadcrumb = ('I', (i, j), [('V', i2, j2)])
                     entry.update(r3, breadcrumb)     
         # Case 4: Multiloop
@@ -148,6 +210,12 @@ class Solver:
         self.V[i][j] = entry
     
     def compute_WM2(self, i: int, j: int):
+        """Compute WM2[i][j].
+
+        Args:
+            i (int): row index
+            j (int): column index
+        """
         # base
         if i == j or i-1 == j:
             self.WM2[i][j] = Entry(Decimal('Infinity'))
@@ -166,6 +234,12 @@ class Solver:
         self.WM2[i][j] = entry
     
     def compute_WM(self, i: int, j: int):
+        """Compute WM[i][j].
+
+        Args:
+            i (int): row index
+            j (int): column index
+        """
         # base
         if i == j or i-1 == j:
             self.WM[i][j] = Entry(Decimal('Infinity'))
@@ -188,11 +262,24 @@ class Solver:
             entry.update(r3, breadcrumb)
         self.WM[i][j] = entry
 
-    def solve(self):
+    def solve(self) -> Decimal:
+        """Return the minimum energy of a folding of self.seq.
+
+        Returns:
+            Decimal: the minimum energy of a folding of self.seq
+        """
         N = len(self.seq)
         return self.W[0][N-1].val
 
-    def get_table(self, tablename):
+    def get_table(self, tablename: str) -> EntryTable:
+        """Get the table object corresponding to the tablename.
+
+        Args:
+            tablename (str): the name of the table
+
+        Returns:
+            EntryTable: the table object corresponding to the name
+        """
         if tablename == 'W':
             return self.W
         elif tablename == 'V':
@@ -202,7 +289,15 @@ class Solver:
         elif tablename == 'WM':
             return self.WM
     
-    def get_one_solution_h(self, i, j, table, solution):
+    def get_one_solution_h(self, i: int, j: int, table: EntryTable, solution: list):
+        """Helper function for getting one optimal solution for the Zuker algorithm.
+
+        Args:
+            i (int): start index
+            j (int): end index
+            table (EntryTable): the current table we are recursing into
+            solution (list): stores the resulting optimal solution
+        """
         if j <= i:
             return
         # choose the first solution
@@ -214,8 +309,12 @@ class Solver:
         for tablename, i, j in recurseL:
             self.get_one_solution_h(i, j, self.get_table(tablename), solution)
     
-    def get_one_solution(self):
-        """get an arbitrary solution"""
+    def get_one_solution(self) -> list:
+        """Get an arbitrary optimal solution for the Zuker algorithm.
+
+        Returns:
+            list: the resulting optimal solution/folding
+        """
         N = len(self.seq)
         solution = [i for i in range(N)]
         self.get_one_solution_h(0, N-1, self.W, solution)

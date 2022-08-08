@@ -1,16 +1,19 @@
-from algs.nussinov import *
+"""Test file for Nussinov max distance and distance vector algorithms"""
 
+from algs.nussinov import *
 import random
 
-def test_max_distance_dp():
+def test_distance():
     """
-    Generate rnas of different sizes,
+    Generate RNAs of different sizes,
     and test the DP algorithm against the
-    brute force algorithm.
-        - Test the max difference
-        - Test the vector
+    brute force algorithm. The test constructs
+    an optimal folding as the base folding
+    to compare against.
+        - Test the max distance
+        - Test the distance vector
     """
-    test_range = range(5, 25)
+    test_range = range(5, 20)
     item_per_range = 1000
     for length in test_range:
         print(f"Testing length = {length}...")
@@ -24,20 +27,23 @@ def test_max_distance_dp():
 
             optimal_folds = backtrack(rna, opt_solutions)
             v = distancevector(folding, optimal_folds)
+            # test max distance
             maxdiff_bf = len(v)-1
             assert maxdiff == maxdiff_bf
 
-            # Test histogram/vector calculations
-            vdp = max_distance_vec(folding, opt_solutions).v
+            # test distance vector
+            vdp = distance_vec(folding, opt_solutions).v
             assert vdp == v
 
-def test_suboptimal_fold():
+def test_distance_random_fold():
     """
-    Generate rnas of different sizes,
+    Generate RNAs of different sizes,
     and test the DP algorithm against the
-    brute force algorithm.
-        - Test the max difference
-        - Test the vector
+    brute force algorithm. The test
+    constructs random foldings as base
+    foldings to compare against.
+        - Test the max distance
+        - Test the distance vector
     """
     test_range = range(5, 6)
     item_per_range = 10
@@ -53,11 +59,12 @@ def test_suboptimal_fold():
 
             optimal_folds = backtrack(rna, opt_solutions)
             v = distancevector(folding, optimal_folds)
+            # test max distance
             maxdiff_bf = len(v)-1
             assert maxdiff == maxdiff_bf
 
-            # Test histogram/vector calculations
-            vdp = max_distance_vec(folding, opt_solutions).v
+            # test distance vector
+            vdp = distance_vec(folding, opt_solutions).v
             assert vdp == v
 
             print(f'rna: {rna} | fold: {folding}')
@@ -101,6 +108,9 @@ def gen_random_fold(rna: str):
     return fold
 
 def test_nussinov():
+    """Test the nussinov DP algorithm by printing all optimal solutions
+    found by backtracking the nussinov DP table
+    """
     for _ in range(10):
         rna = generate_rna(6)
         opt, solgraph = nussinov_dp(rna)
@@ -156,7 +166,7 @@ def backtrack(rna: str, opt_solutions: list) -> list:
     return optimal_folds
 
 def foldcompare(f1, f2):
-    """
+    """Compute the distance between two folds
     ([0, 1], [0, 1]) -> 0
     ([1, 0], [1, 0]) -> 0
     ([1, 0, 2], [2, 1, 0]) -> 2
@@ -210,6 +220,8 @@ def backtrackh(opt_solutions: list, curr: tuple, folding: list):
     return foldings
 
 def distancevector(fold: list, allfolds: list):
+    """Compute the distance vector through a bruteforce algorithm.
+    """
     vector = [0] * len(fold)*2
 
     for other in allfolds:
@@ -223,6 +235,7 @@ def distancevector(fold: list, allfolds: list):
 
 
 if __name__ == '__main__':
-    test_suboptimal_fold()
-    test_max_distance_dp()
+    test_distance()
+    test_distance_random_fold()
+    test_nussinov()
     print("All tests passed!")
